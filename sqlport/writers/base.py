@@ -1,0 +1,2 @@
+
+KW = str.upper
