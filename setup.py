@@ -21,12 +21,9 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/ak-1/sqlport',
     install_requires=[
-        'sly',
+        'sly @ git+https://github.com/ak-1/sly35.git@master#egg=sly-0.4',
         'termcolor',
       ],
-    dependency_links=[
-        'git+https://github.com/ak-1/sly35.git@master#egg=sly-0'
-    ],
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
