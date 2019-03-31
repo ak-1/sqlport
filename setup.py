@@ -24,6 +24,9 @@ setup(
         'sly',
         'termcolor',
       ],
+    dependency_links=[
+        'git+https://github.com/ak-1/sly35.git@master#egg=sly-0'
+    ],
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
