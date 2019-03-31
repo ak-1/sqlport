@@ -1,4 +1,4 @@
-## sqlport - Aspires to port Informix SQL to PostgreSQL
+## sqlport - aspires to port Informix SQL to PostgreSQL
 
 ```
 $ echo 'select first 1 hello from world' | sqlport
@@ -56,8 +56,11 @@ optional arguments:
 
 #### data types
 
-- Informix: lvarchar
-- Postgres: varchar
+| Informix  | Postgres            |
+| --------- | ------------------- |
+| `lvarchar` | `varchar` |
+| `varchar(x,y)`   | `varchar(x)`      |
+| `byte` | `bytea` |
 
 #### select into temp
 
@@ -71,8 +74,33 @@ optional arguments:
 
 #### string literals
 
-- Informix: "alright"
+- Informix: `"alright"`
 - Postgres: only allows single quoted strings; double quoted strings are converted to single quoted
+
+#### date/time literals
+
+| Informix  | Postgres            |
+| --------- | ------------------- |
+| `current` | `current_timestamp` |
+| `today`   | `current_date`      |
+
+#### nvl
+
+- Informix: `nvl(x, y)`
+- Postgres: `coalesce(x, y)`
+
+#### constraints
+
+- Informix: `ALTER TABLE ADD CONSTRAINT PRIMARY KEY ...`
+- Postgres: `ALTER TABLE ADD PRIMARY KEY ...`
+
+#### create procedure
+
+| Informix | Postgres |
+| -------- | -------- |
+| `CREATE PROCEDURE` | `CREATE FUNCTION` |
+| `RETURNING` | `RETURNS` |
+
 
 ### Partial support
 
@@ -123,9 +151,27 @@ Just using the record type would be preferable.
   ```
 - Status: Only a few error codes are mapped; WITH RESUME is not supported
 
-### Unsupported differences
+#### decimal
+
+- Informix: `decimal(20)`
+- Postgres: If you omit the scale in Postgres it default to zero.
+
+#### matches
+
+- Informix: `matches "*[a-z]?"`
+- Postgres: `similar to "%[a-z]_"`
+- Status: This is converted for literal string patterns, but not if the pattern is a variable.
+
+#### slice
+
+- Informix: `text[2,4]`
+- Postgres: `substring(text from 2 for 3)`
+- Status: This is automatically converted. However this does not work if the slice is on the left side of a `let` statement (variable assignment).
+
+### Unsupported
 
 #### constraint names
 
 - Postgres: contraint name must differ from table name
 - Status: fixme
+
