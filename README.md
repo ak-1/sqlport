@@ -37,34 +37,44 @@ optional arguments:
   --informix, -i        generate informix SQL
 ```
 
-### support
+### Supported transformations
 
 #### keywords as names
 
 - Informix: `all`, `end`, `default`, ...
-- Postgres: not allowed
-- Status: done; add underscore at the end, e.g. `all_`, `end_`, `default_`, ...
-
-#### constraint names
-
-- Postgres: contraint name must differ from table name
-- Status: fixme
+- Postgres: not allowed; add underscore at the end, e.g. `all_`, `end_`, `default_`, ...
 
 #### variable declarations
 
 - Informix: DEFINE x integer
 - Postgres: x integer
-- status: done
+
+#### multi-variable declarations
 
 - Informix: DEFINE x, y integer
-- Postgres: Multi-variable declarions are not supported.
-- status: done; convert to individual declarations
+- Postgres: No multi-variable declarions; convert to individual declarations
 
 #### data types
 
 - Informix: lvarchar
 - Postgres: varchar
-- status: done
+
+#### select into temp
+
+- Informix: `SELECT ... INTO TEMP x`
+- Postgres: `CREATE TEMP TABLE x AS SELECT ...`
+
+#### select unique
+
+- Postgres: `SELECT UNIQUE ...`
+- Informix: `SELECT DISTINCT ...`
+
+#### string literals
+
+- Informix: "alright"
+- Postgres: only allows single quoted strings; double quoted strings are converted to single quoted
+
+### Partial support
 
 #### foreach
 
@@ -92,15 +102,9 @@ Just using the record type would be preferable.
 
 - Informix: FROM a, outer(b)
 - Postgres: not supported
-- status: limited convertion to ANSI JOINs
+- Status: limited convertion to ANSI JOINs
 
-#### string literals
-
-- Informix: "alright"
-- Postgres: only allows single quoted strings
-- Status: done; double quoted strings are converted to single quoted
-
-#### exception handlers
+#### exception handlers and error codes
 
 - Informix:
   ```
@@ -117,4 +121,11 @@ Just using the record type would be preferable.
   ...
   END
   ```
-- Status: limited support; Only a few error codes are mapped; WITH RESUME is not supported
+- Status: Only a few error codes are mapped; WITH RESUME is not supported
+
+### Unsupported differences
+
+#### constraint names
+
+- Postgres: contraint name must differ from table name
+- Status: fixme
