@@ -114,15 +114,13 @@ optional arguments:
   ...
   END LOOP;
   ```
-- Status: done
-
-Just using the record type would be preferable. 
+- This conversion is done, but just using the record type would be preferable in several cases. 
 
 #### outer
 
-- Informix: FROM a, outer(b)
+- Informix: `SELECT ... FROM a, outer(b)`
 - Postgres: not supported
-- Status: limited convertion to ANSI JOINs
+- Supports limited convertion to ANSI JOINs for simple cases.
 
 #### exception handlers and error codes
 
