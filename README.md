@@ -61,38 +61,20 @@ optional arguments:
 | `lvarchar` | `varchar` |
 | `varchar(x,y)`   | `varchar(x)`      |
 | `byte` | `bytea` |
+| `interval (1) year to month | interval |
 
-#### select into temp
-
-- Informix: `SELECT ... INTO TEMP x`
-- Postgres: `CREATE TEMP TABLE x AS SELECT ...`
-
-#### select unique
-
-- Postgres: `SELECT UNIQUE ...`
-- Informix: `SELECT DISTINCT ...`
-
-#### string literals
-
-- Informix: `"alright"`
-- Postgres: only allows single quoted strings; double quoted strings are converted to single quoted
-
-#### date/time literals
+#### literals
 
 | Informix  | Postgres            |
 | --------- | ------------------- |
 | `current` | `current_timestamp` |
 | `today`   | `current_date`      |
-
-#### nvl
-
-- Informix: `nvl(x, y)`
-- Postgres: `coalesce(x, y)`
-
-#### constraints
-
-- Informix: `ALTER TABLE ADD CONSTRAINT PRIMARY KEY ...`
-- Postgres: `ALTER TABLE ADD PRIMARY KEY ...`
+| `nvl(x, y)` | `coalesce(x, y)` |
+| `"some text"` | `'some text'` |
+| `SELECT UNIQUE ...` | `SELECT DISTINCT ...` |
+| `SELECT ... INTO TEMP x` | `CREATE TEMP TABLE x AS SELECT ...` |
+| `ALTER TABLE ADD CONSTRAINT PRIMARY KEY ...` | `ALTER TABLE ADD PRIMARY KEY ...` |
+| `SELECT x, y, z FROM TABLE(some_function(a, b)) AS (x, y, z)` | SELECT x, y, z FROM some_function(a, b) AS (x, y, z) |
 
 #### create procedure
 
@@ -100,9 +82,15 @@ optional arguments:
 | -------- | -------- |
 | `CREATE PROCEDURE` | `CREATE FUNCTION` |
 | `RETURNING` | `RETURNS` |
-
+| `UPDATE STATISTICS [FOR table_name]` | `ANALYZE [table_name]` |
+| `RAISE EXCEPTION -746, 0, "some text"` | `RAISE EXCEPTION "Error: %", 'some text'` |
 
 ### Partial support
+
+| Informix | Postgres | Remarks |
+| -------- | -------- | -------
+| `SYSTEM "sleep 10"` | `PERFORM system("sleep 10")` | `system` function has to be defined separately |
+| `ALTER TABLE x ADD a int BEFORE c` | | `BEFORE c` is dropped |
 
 #### foreach
 
@@ -149,7 +137,9 @@ Just using the record type would be preferable.
   ...
   END
   ```
-- Status: Only a few error codes are mapped; WITH RESUME is not supported
+- Only a few error codes are mapped
+- WITH RESUME is not supported
+- ON EXCEPTION without error code is not supported
 
 #### decimal
 
@@ -168,7 +158,34 @@ Just using the record type would be preferable.
 - Postgres: `substring(text from 2 for 3)`
 - Status: This is automatically converted. However this does not work if the slice is on the left side of a `let` statement (variable assignment).
 
+#### merge
+
+- Informix:
+  ```
+  MERGE INTO x USING y ON y.y1 = x.x1
+  WHEN MATCHED THEN UPDATE SET x.x2 = y.y2
+  WHEN NOT MATCHED THEN INSERT (x1, x2) VALUES (y1, y2)
+  ```
+- Postgres:
+  ```
+  INSERT INTO x (x1, x2)
+  SELECT y1, y2 FROM y
+  ON CONFLICT (x1) DO UPDATE SET x1 = y1, x2 = y2
+  ```
+- `MERGE` without WHEN NOT MATCHES THEN INSERT is not supported.
+- The primary key columns (`x1` in `ON CONFLICT (x1)`) has to be entered manually.
+  
 ### Unsupported
+
+| Informix | Postgres |
+| -------- | -------- |
+| `multiset(integer)` | |
+| `set lock mode to wait 5` | |
+| `set lock mode to not wait` | |
+| `DEFINE GLOBAL name int DEFAULT 0` | |
+| `database[@server]:name` | |
+| multiple return values | use `record` type or `OUT` paramters |
+| named return parameters | |
 
 #### constraint names
 
