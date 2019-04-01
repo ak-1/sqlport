@@ -39,21 +39,6 @@ optional arguments:
 
 ### Supported transformations
 
-#### keywords as names
-
-- Informix: `all`, `end`, `default`, ...
-- Postgres: not allowed; add underscore at the end, e.g. `all_`, `end_`, `default_`, ...
-
-#### variable declarations
-
-- Informix: DEFINE x integer
-- Postgres: x integer
-
-#### multi-variable declarations
-
-- Informix: DEFINE x, y integer
-- Postgres: No multi-variable declarions; convert to individual declarations
-
 #### data types
 
 | Informix  | Postgres            |
@@ -82,12 +67,20 @@ optional arguments:
 | -------- | -------- |
 | `CREATE PROCEDURE` | `CREATE FUNCTION` |
 | `RETURNING` | `RETURNS` |
+| `DEFINE x integer` | `x integer` in `DECLARE` block |
+| `DEFINE x, y integer` | converted to individual declarations |
 | `UPDATE STATISTICS [FOR table_name]` | `ANALYZE [table_name]` |
 | `RAISE EXCEPTION -746, 0, "some text"` | `RAISE EXCEPTION "Error: %", 'some text'` |
 | `EXECUTE PROCEDURE name(x,y)`, `CALL name(x, y)` | `SELECT name(x, y)`, `PERFORM name(x, y)` |
 | `EXIT WHILE`, `EXIT FOR`, ... | `EXIT` |
 | `WHILE x=y ... END WHILE` | `WHILE x=y LOOP ... END LOOP` |
 | semicolon optional after `END IF`, `END FOR`, ...  | semicolon always required |
+
+#### keywords as names
+
+- Informix: `all`, `end`, `default`, ...
+- Postgres: not allowed
+- append underscore, e.g. `all_`, `end_`, `default_`, ...
 
 ### Partial support
 
