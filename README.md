@@ -82,6 +82,11 @@ optional arguments:
 - Postgres: not allowed
 - append underscore, e.g. `all_`, `end_`, `default_`, ...
 
+#### constraint names
+
+- Postgres: contraint name must differ from table name
+- Prefix constraint name, e.g. with `pk_`
+
 ### Partial support
 
 | Informix | Postgres | Remarks |
@@ -185,9 +190,4 @@ optional arguments:
 | `LET x, y = y, x` | |
 | REVOKE | |
 | GRANT | |
-
-#### constraint names
-
-- Postgres: contraint name must differ from table name
-- Status: fixme
 
