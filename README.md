@@ -76,7 +76,7 @@ optional arguments:
 | `ALTER TABLE ADD CONSTRAINT PRIMARY KEY ...` | `ALTER TABLE ADD PRIMARY KEY ...` |
 | `SELECT x, y, z FROM TABLE(some_function(a, b)) AS (x, y, z)` | SELECT x, y, z FROM some_function(a, b) AS (x, y, z) |
 
-#### create procedure
+#### procedures
 
 | Informix | Postgres |
 | -------- | -------- |
@@ -84,6 +84,10 @@ optional arguments:
 | `RETURNING` | `RETURNS` |
 | `UPDATE STATISTICS [FOR table_name]` | `ANALYZE [table_name]` |
 | `RAISE EXCEPTION -746, 0, "some text"` | `RAISE EXCEPTION "Error: %", 'some text'` |
+| `EXECUTE PROCEDURE name(x,y)`, `CALL name(x, y)` | `SELECT name(x, y)`, `PERFORM name(x, y)` |
+| `EXIT WHILE`, `EXIT FOR`, ... | `EXIT` |
+| `WHILE x=y ... END WHILE` | `WHILE x=y LOOP ... END LOOP` |
+| semicolon optional after `END IF`, `END FOR`, ...  | semicolon always required |
 
 ### Partial support
 
@@ -186,6 +190,10 @@ Just using the record type would be preferable.
 | `database[@server]:name` | |
 | multiple return values | use `record` type or `OUT` paramters |
 | named return parameters | |
+| `sys*` tables | |
+| `LET x, y = y, x` | |
+| REVOKE | |
+| GRANT | |
 
 #### constraint names
 
