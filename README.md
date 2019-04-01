@@ -46,7 +46,7 @@ optional arguments:
 | `lvarchar` | `varchar` |
 | `varchar(x,y)`   | `varchar(x)`      |
 | `byte` | `bytea` |
-| `interval (1) year to month | interval |
+| `interval (1) year to month` | `interval` |
 
 #### literals
 
@@ -54,12 +54,19 @@ optional arguments:
 | --------- | ------------------- |
 | `current` | `current_timestamp` |
 | `today`   | `current_date`      |
-| `nvl(x, y)` | `coalesce(x, y)` |
 | `"some text"` | `'some text'` |
+
+#### misc
+
+| Informix  | Postgres            |
+| --------- | ------------------- |
+| `SELECT FIRST 1 ...` | `SELECT ... LIMIT 1` |
 | `SELECT UNIQUE ...` | `SELECT DISTINCT ...` |
 | `SELECT ... INTO TEMP x` | `CREATE TEMP TABLE x AS SELECT ...` |
-| `ALTER TABLE ADD CONSTRAINT PRIMARY KEY ...` | `ALTER TABLE ADD PRIMARY KEY ...` |
 | `SELECT x, y, z FROM TABLE(some_function(a, b)) AS (x, y, z)` | SELECT x, y, z FROM some_function(a, b) AS (x, y, z) |
+| `nvl(x, y)` | `coalesce(x, y)` |
+| `ALTER TABLE ADD CONSTRAINT PRIMARY KEY ...` | `ALTER TABLE ADD PRIMARY KEY ...` |
+| `UPDATE STATISTICS [FOR table_name]` | `ANALYZE [table_name]` |
 
 #### procedures
 
@@ -67,14 +74,16 @@ optional arguments:
 | -------- | -------- |
 | `CREATE PROCEDURE` | `CREATE FUNCTION` |
 | `RETURNING` | `RETURNS` |
+| no return value | `RETURNS void` |
 | `DEFINE x integer` | `x integer` in `DECLARE` block |
 | `DEFINE x, y integer` | converted to individual declarations |
-| `UPDATE STATISTICS [FOR table_name]` | `ANALYZE [table_name]` |
-| `RAISE EXCEPTION -746, 0, "some text"` | `RAISE EXCEPTION "Error: %", 'some text'` |
-| `EXECUTE PROCEDURE name(x,y)`, `CALL name(x, y)` | `SELECT name(x, y)`, `PERFORM name(x, y)` |
-| `EXIT WHILE`, `EXIT FOR`, ... | `EXIT` |
+| `LET x = y` | `x := y` |
+| `IF ... ELIF ... END IF` | `IF ... ELSIF ... END IF` |
 | `WHILE x=y ... END WHILE` | `WHILE x=y LOOP ... END LOOP` |
+| `EXIT WHILE`, `EXIT FOR`, ... | `EXIT` |
+| `RAISE EXCEPTION -746, 0, "some text"` | `RAISE EXCEPTION "Error: %", 'some text'` |
 | semicolon optional after `END IF`, `END FOR`, ...  | semicolon always required |
+| `EXECUTE PROCEDURE name(x,y)`, `CALL name(x, y)` | `SELECT name(x, y)`, `PERFORM name(x, y)` |
 
 #### keywords as names
 
