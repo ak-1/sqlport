@@ -37,7 +37,7 @@ optional arguments:
   --informix, -i        generate informix SQL
 ```
 
-### Supported transformations
+### Implemented transformations
 
 #### data types
 
@@ -96,7 +96,7 @@ optional arguments:
 - Postgres: contraint name must differ from table name
 - Prefix constraint name, e.g. with `pk_`
 
-### Partial support
+### Limited transformations
 
 | Informix | Postgres | Remarks |
 | -------- | -------- | -------
@@ -198,3 +198,4 @@ optional arguments:
 | multiple return values | use `record` type or `OUT` paramters |
 | named return parameters | |
 
+If something is not automatically translated a `NOT_SUPPORTED` message is included in the output.
