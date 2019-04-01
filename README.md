@@ -180,14 +180,12 @@ optional arguments:
 | Informix | Postgres |
 | -------- | -------- |
 | `multiset(integer)` | |
-| `set lock mode to wait 5` | |
-| `set lock mode to not wait` | |
-| `DEFINE GLOBAL name int DEFAULT 0` | |
+| `SET LOCK MODE` | |
+| `DEFINE GLOBAL` | |
 | `database[@server]:name` | |
-| multiple return values | use `record` type or `OUT` paramters |
-| named return parameters | |
 | `sys*` tables | |
 | `LET x, y = y, x` | |
-| REVOKE | |
-| GRANT | |
+| `GRANT`, `REVOKE` | |
+| multiple return values | use `record` type or `OUT` paramters |
+| named return parameters | |
 
