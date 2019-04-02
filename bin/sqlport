@@ -53,8 +53,16 @@ def read_file(infile):
     else:
         return open(infile).read()
 
+class ErrorCount:
+    def __init__(self):
+        self.value = 0
+
+    def __call__(self, obj, t):
+        self.value += 1
+
 def main():
     args = parse_args()
+    error_count = ErrorCount()
     if args.debug:
         Logger.level += args.debug
     from sqlport.engine import lex, parse
@@ -78,14 +86,16 @@ def main():
             outfh = open(outfile, 'a' if outfile in seen_outfiles else 'w')
         seen_outfiles.add(outfile)
         if args.lex:
-            lex(text, outfh, args.verbose)
+            lex(text, outfh, args.verbose, onerror=error_count)
         else:
-            tree = parse(text, outfh, args.verbose)
+            tree = parse(text, outfh, args.verbose, onerror=error_count)
             if args.parse_tree:
                 #tree.set_parents()
                 pretty_print(tree)
             elif not args.quiet:
                 tree.render(outfh)
+    if error_count.value > 0:
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

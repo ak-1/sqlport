@@ -38,10 +38,6 @@ class SqlParser(Parser):
         ('nonassoc', '.', '[', ']'),
         )
 
-    def __init__(self):
-        #self.names = { }
-        pass
-
     @_('toplevel')
     def toplevel_list(self, p):
         return StatementList(p.toplevel)
@@ -406,17 +402,20 @@ class SqlParser(Parser):
 
     @_('WHEN MATCHED THEN UPDATE SET assignment_list')
     def merge_case(self, p):
-        return NodeList('UPDATE', p.assignment_list)
+        return NodeList('UPDATE_A', p.assignment_list)
+    @_('WHEN MATCHED THEN UPDATE SET "(" name_list ")" "=" "(" expr_list ")"')
+    def merge_case(self, p):
+        return NodeList('UPDATE_B', p.name_list, p.expr_list)
     @_('WHEN NOT MATCHED THEN INSERT "(" column_list ")" VALUES "(" expr_list ")"')
     def merge_case(self, p):
         return NodeList('INSERT', p.column_list, p.expr_list)
     
     @_('UPDATE entity_ref_as SET assignment_list where')
     def update_stmt(self, p):
-        return UpdateA(p.entity_ref_as, p.assignment_list, p.where)
+        return UpdateA(p.entity_ref_as, p.assignment_list, None, p.where)
     @_('UPDATE entity_ref_as SET "(" name_list ")" "=" "(" expr_list ")" where')
     def update_stmt(self, p):
-        return UpdateB(p.entity_ref_as, p.name_list, p[8], p.where)
+        return UpdateB(p.entity_ref_as, p.name_list, p[8], None, p.where)
 
     @_('assignment')
     def assignment_list(self, p):
@@ -1137,8 +1136,14 @@ class SqlParser(Parser):
     @_('')
     def empty(self, p):
         pass
-    
+
+    def parse(self, tokens, onerror=None):
+        self.onerror = onerror
+        return super().parse(tokens)
+
     def error(self, t):
+        if self.onerror:
+            self.onerror(self, t)
         txt = self.input_text
         print("Syntax Error [state {}]".format(self.state), t)
         #print("self", dir(self))

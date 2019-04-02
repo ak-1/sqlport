@@ -250,16 +250,18 @@ class Truncate(Node):
         self.table = table
 
 class UpdateA(Node):
-    def __init__(self, table, assignments, where):
+    def __init__(self, table, assignments, _from, where):
         self.table = table
         self.assignments = assignments
+        self._from = _from
         self.where = where
 
 class UpdateB(Node):
-    def __init__(self, table, columns, values, where):
+    def __init__(self, table, columns, values, _from, where):
         self.table = table
         self.columns = columns
         self.values = values
+        self._from = _from
         self.where = where
 
 class Merge(Node):

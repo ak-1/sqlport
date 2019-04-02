@@ -106,21 +106,28 @@ class InformixWriter:
     def UpdateA(self):
         yield "UPDATE ", self.table, " SET "
         yield join_list(', ', [(a[0], " = ", a[1]) for a in self.assignments])
+        if self._from:
+            yield ' FROM ', self._from
         if self.where:
             yield ' WHERE ', self.where
         
     def UpdateB(self):
         yield "UPDATE ", self.table, " SET "
         yield "(", Indented(self.columns), ') = (', Indented(self.values), ')'
+        if self._from:
+            yield ' FROM ', self._from
         if self.where:
             yield ' WHERE ', self.where
 
     def Merge(self):
         yield "MERGE INTO ", self.dst, " USING ", self.src, " ON ", self.on
         for case in self.case_list:
-            if case[0] == "UPDATE":
+            if case[0] == "UPDATE_A":
                 yield " WHEN MATCHED THEN UPDATE SET "
                 yield join_list(', ', [(a[0], " = ", a[1]) for a in case[1]])
+            elif case[0] == "UPDATE_B":
+                yield " WHEN MATCHED THEN UPDATE SET ("
+                yield case[1], ") = (", case[2], ")"
             elif case[0] == "INSERT":
                 yield " WHEN NOT MATCHED THEN INSERT ("
                 yield case[1], ') VALUES (', case[2], ')'
