@@ -143,7 +143,7 @@ optional arguments:
 
 - Informix: `SELECT ... FROM a, outer(b)`
 - Postgres: not supported
-- Supports limited convertion to ANSI JOINs for simple cases.
+- Supports limited translation to ANSI JOINs for simple cases.
 
 #### exception handlers and error codes
 
