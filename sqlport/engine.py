@@ -7,7 +7,7 @@ from . parser import SqlParser
 
 node.writer = postgres.writer
 
-def parse(text, outfh=None, verbose=0):
+def parse(text, outfh=None, verbose=0, onerror=None):
     if not outfh:
         outfh = sys.stdout
     lexer = SqlLexer()
@@ -16,22 +16,22 @@ def parse(text, outfh=None, verbose=0):
     if verbose:
         outfh.write("-"*80 + '\n')
         outfh.write("{}\n\n".format(text))
-    return parser.parse(lexer.tokenize(text))
+    return parser.parse(lexer.tokenize(text, onerror), onerror)
 
 def parse_file(filepath):
     print("parse {}".format(filepath))
     return parse(open(filepath).read())
 
-def lex(text, outfh=None, verbose=0, quiet=0):
+def lex(text, outfh=None, verbose=0, quiet=0, onerror=None):
     if not outfh:
         outfh = sys.stdout
-    if verbose:
+    if verbose > 1:
         outfh.write("-"*80 + '\n')
         outfh.write("{}\n\n".format(text))
-    for token in lexer.tokenize(text):
+    lexer = SqlLexer()
+    for token in lexer.tokenize(text, onerror):
         if verbose:
-            outfh.write(str(token))
-    #print(' '.join([t.value for t in lexer.tokenize(text)]))
+            outfh.write(str(token)+'\n')
 
 def lex_file(filepath):
     print("lex {}".format(filepath))

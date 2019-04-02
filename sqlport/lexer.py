@@ -185,7 +185,13 @@ class SqlLexer(Lexer):
     UINT = r'[0-9]+'
     STRING = r"""("[^"]*")+|('[^']*')+"""
 
+    def tokenize(self, text, onerror=None):
+        self.onerror = onerror
+        return super().tokenize(text)
+
     def error(self, t):
+        if self.onerror:
+            self.onerror(self, t)
         if len(t.value) > 10:
             t.value = t.value[:10] + '...'
         print("LexError: {}".format(t))

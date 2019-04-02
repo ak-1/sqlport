@@ -38,10 +38,6 @@ class SqlParser(Parser):
         ('nonassoc', '.', '[', ']'),
         )
 
-    def __init__(self):
-        #self.names = { }
-        pass
-
     @_('toplevel')
     def toplevel_list(self, p):
         return StatementList(p.toplevel)
@@ -1137,8 +1133,14 @@ class SqlParser(Parser):
     @_('')
     def empty(self, p):
         pass
-    
+
+    def parse(self, tokens, onerror=None):
+        self.onerror = onerror
+        return super().parse(tokens)
+
     def error(self, t):
+        if self.onerror:
+            self.onerror(self, t)
         txt = self.input_text
         print("Syntax Error [state {}]".format(self.state), t)
         #print("self", dir(self))
