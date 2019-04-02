@@ -477,37 +477,36 @@ class PostgresWriter(InformixWriter):
         yield Comment(NotSupported("SET LOCK MODE"))
 
     def Merge(self):
-        # yield "MERGE INTO ", self.dst, " USING ", self.src, " ON ", self.on
-        # for case in self.case_list:
-        #     if case[0] == "UPDATE":
-        #         yield " WHEN MATCHED THEN UPDATE SET "
-        #         yield join_list(', ', [(a[0], " = ", a[1]) for a in case[1]])
-        #     elif case[0] == "INSERT":
-        #         yield " WHEN NOT MATCHED THEN INSERT ("
-        #         yield case[1], ') VALUES (', case[2], ')'
-        column_list = None
-        expr_list = None
-        set_list = None
+        br = Br(self)
+        ins_column_list = None
+        ins_expr_list = None
+        upd_set_list = None
+        upd_column_list = None
+        upd_expr_list = None
         for case in self.case_list:
-            if case[0] == "UPDATE":
-                set_list = case[1]
+            if case[0] == "UPDATE_A":
+                upd_set_list = case[1]
+            elif case[0] == "UPDATE_B":
+                upd_column_list, upd_expr_list = case[1], case[2]
             elif case[0] == "INSERT":
-                column_list = case[1]
-                expr_list = case[2]
-        if None in (column_list, expr_list):
-            yield NotSupported("MERGE WITHOUT INSERT")
-            return
-        yield 'INSERT INTO ', self.dst, ' (', column_list, ')\n'
-        yield 'SELECT ', expr_list, '\n'
-        yield 'FROM ', self.src, '\n'
-        if set_list:
-            yield 'ON CONFLICT (', NotSupported(), ') DO UPDATE SET\n'
-            yield join_list(', ', [(a[0], " = ", a[1]) for a in set_list])
-        else:
-            yield 'ON CONFLICT DO NOTHING'
-        # INSERT INTO table_b (pk_b, b)
-        # SELECT pk_a, a FROM table_a 
-        # ON CONFLICT (pk_b) DO UPDATE SET b = excluded.b;
+                ins_column_list = case[1]
+                ins_expr_list = case[2]
+        if ins_column_list:
+            yield 'INSERT INTO ', self.dst, ' (', ins_column_list, ')', br
+            yield 'SELECT ', ins_expr_list, br
+            yield 'FROM ', self.src, br
+            if upd_set_list:
+                yield 'ON CONFLICT DO UPDATE SET', br
+                yield join_list(', ', [(a[0], " = ", a[1]) for a in upd_set_list])
+            elif upd_column_list:
+                yield 'ON CONFLICT DO UPDATE SET (', br
+                yield Indented(upd_column_list), br, ') = (', br, Indented(upd_expr_list), br, ')'
+            else:
+                yield 'ON CONFLICT DO NOTHING'
+        elif upd_set_list:
+            yield UpdateA(self.dst, upd_set_list, self.src, self.on).writeout()
+        elif upd_column_list:
+            yield UpdateB(self.dst, upd_column_list, upd_expr_list, self.src, self.on).writeout()
 
     def ForEach(self):
         # yield 'FOREACH '
