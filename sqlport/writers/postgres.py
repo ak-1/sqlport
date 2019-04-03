@@ -36,11 +36,6 @@ def map_matches(txt):
 
 exprStatements = (OnException, SetLockMode)
 
-def checkname(name):
-    if name in invalid_names:
-        name += '_'
-    return name.lower()
-
 def ensure_name_prefix(prefix, obj):
     if isinstance(obj.name, OwnerDotName):
         obj = obj.name
@@ -253,7 +248,7 @@ class PostgresWriter(InformixWriter):
         yield 'current_date'
 
     def CreateTableColumn(self):
-        yield checkname(self.name), ' ', self.ctype
+        yield self.name, ' ', self.ctype
         if self.default:
             yield " DEFAULT ", self.default
         if self.not_null:
@@ -262,10 +257,13 @@ class PostgresWriter(InformixWriter):
             yield " PRIMARY KEY"
 
     def TableColumn(self):
-        return self.table, '.', checkname(self.column)
+        return self.table, '.', self.column
 
     def Name(self):
-        return checkname(self.name)
+        if self.name in invalid_names:
+            return self.name.lower() + '_'
+        else:
+            return self.name.lower()
 
     def DatetimeType(self):
         yield 'timestamp'
