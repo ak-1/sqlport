@@ -1,7 +1,9 @@
 *~
 *#
+*.pyc
 parser.out
 __pycache__/
+.cache/
 build/
 dist/
 *.egg-info/
