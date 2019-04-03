@@ -114,10 +114,17 @@ optional arguments:
 
 ### Limited transformations
 
-| Informix | Postgres | Remarks |
-| -------- | -------- | -------
-| `SYSTEM "sleep 10"` | `PERFORM system("sleep 10")` | `system` function has to be defined separately |
-| `ALTER TABLE x ADD a int BEFORE c` | | `BEFORE c` is dropped |
+#### system
+
+- Informix `SYSTEM "sleep 10"`
+- Postgres `PERFORM system('sleep 10')`
+- The `system` function has to be defined separately
+
+#### ADD column BEFORE
+
+- Informix: `ALTER TABLE x ADD a int BEFORE c`
+- Postgres: `BEFORE` is not supported
+- `BEFORE c` is dropped
 
 #### foreach
 
@@ -183,7 +190,7 @@ optional arguments:
 - Postgres: `substring(text from 2 for 3)`
 - This is automatically converted. However this does not work if the slice is on the left side of a `let` statement (variable assignment).
 
-### Unsupported
+### Not Supported
 
 | Informix | Postgres |
 | -------- | -------- |
