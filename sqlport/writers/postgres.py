@@ -268,7 +268,12 @@ class PostgresWriter(InformixWriter):
             return self.name.lower()
 
     def DatetimeType(self):
-        yield 'timestamp'
+        if self.type == "DATETIME":
+            yield 'timestamp'
+        elif self.type == "INTERVAL":
+            yield 'interval'
+        else:
+            yield self.type
 
     def Nvl(self):
         yield 'coalesce(', self.args, ')'
