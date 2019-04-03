@@ -116,8 +116,8 @@ optional arguments:
 
 #### system
 
-- Informix `SYSTEM "sleep 10"`
-- Postgres `PERFORM system('sleep 10')`
+- Informix: `SYSTEM "sleep 10"`
+- Postgres: `PERFORM system('sleep 10')`
 - The `system` function has to be defined separately
 
 #### ADD column BEFORE
