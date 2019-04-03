@@ -631,10 +631,10 @@ class SqlParser(Parser):
 
     @_('name')
     def name_list(self, p):
-        return CommaList(Name(p.name))
+        return CommaList(p.name)
     @_('name "," name_list')
     def name_list(self, p):
-        return p.name_list.push(Name(p.name))
+        return p.name_list.push(p.name)
 
     @_('CREATE temp TABLE if_not_exists entity_name "(" create_table_item_list ")"')
     def create_table(self, p):
@@ -1000,7 +1000,7 @@ class SqlParser(Parser):
         return p.table_column
     @_('name')
     def expr(self, p):
-        return Name(p[0])
+        return p[0]
     @_('sub_select')
     def expr(self, p):
         return p.sub_select
@@ -1131,7 +1131,7 @@ class SqlParser(Parser):
     @_('NAME', 'ALL', 'KEY', 'UPDATE', 'time_unit_name', 'MATCHED', 'END', 'DEFAULT',
        'VALUE', 'datatype', 'TRIM', 'BEGIN', 'GLOBAL', 'STEP', 'SHARE', '*', 'NEW', 'OLD')
     def name(self, p):
-        return p[0]
+        return Name(p[0])
 
     @_('')
     def empty(self, p):

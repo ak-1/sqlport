@@ -194,7 +194,7 @@ class SelectColumn(Node):
 
     @property
     def id(self):
-        return self.name
+        return self.name.id
 
 class TableColumn(Node):
     def __init__(self, table, column):
@@ -203,10 +203,11 @@ class TableColumn(Node):
 
     @property
     def id(self):
-        return "{}.{}".format(self.table, self.column)
+        return "{}.{}".format(self.table.id, self.column.id)
 
 class Name(Node):
     def __init__(self, name):
+        assert isinstance(name, str)
         self.name = name
 
     @property
@@ -226,9 +227,9 @@ class EntityRef(Node):
             name = name.name
         if self.database:
             if self.server:
-                return "{}@{}:{}".format(self.database, self.server, name)
-            return "{}:{}".format(self.database, name)
-        return name
+                return "{}@{}:{}".format(self.database.id, self.server.id, name.id)
+            return "{}:{}".format(self.database.id, name.id)
+        return name.id
         
 class As(Node):
     def __init__(self, obj, name):
@@ -237,7 +238,7 @@ class As(Node):
 
     @property
     def id(self):
-        return self.name
+        return self.name.id
 
 class SubSelectAsSelectTable(Node):
     def __init__(self, sub_select, name, columns):
