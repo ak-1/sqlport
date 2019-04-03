@@ -169,19 +169,19 @@ optional arguments:
 #### decimal
 
 - Informix: `decimal(20)`
-- Postgres: If you omit the scale in Postgres it default to zero.
+- If you omit the scale in Postgres it defaults to zero.
 
 #### matches
 
 - Informix: `matches "*[a-z]?"`
 - Postgres: `similar to "%[a-z]_"`
-- Status: This is converted for literal string patterns, but not if the pattern is a variable.
+- This is converted for literal string patterns, but not if the pattern is a variable.
 
 #### slice
 
 - Informix: `text[2,4]`
 - Postgres: `substring(text from 2 for 3)`
-- Status: This is automatically converted. However this does not work if the slice is on the left side of a `let` statement (variable assignment).
+- This is automatically converted. However this does not work if the slice is on the left side of a `let` statement (variable assignment).
 
 ### Unsupported
 
