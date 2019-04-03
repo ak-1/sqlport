@@ -21,6 +21,7 @@ WHEN WHERE WHILE WITH YEAR
 LOCK MODE WAIT SHARE EXCLUSIVE UNLOCK UNITS
 SEQUENCE INCREMENT MINVALUE MAXVALUE NOMINVALUE NOMAXVALUE NOCACHE CACHE NOORDER GRANT DBA AGGREGATE ITER COMBINE RESTART
 START PUBLIC USAGE LANGUAGE NVL
+ELSIF LOOP LIMIT
 """.split())
 
 class SqlLexer(Lexer):
@@ -120,6 +121,7 @@ class SqlLexer(Lexer):
         NULL,
         ON,
         PROCEDURE,
+        PG_HERE,
         REVOKE,
         SELECT,
         STRING,
@@ -184,6 +186,7 @@ class SqlLexer(Lexer):
     CAST = r'::'
     UINT = r'[0-9]+'
     STRING = r"""("[^"]*")+|('[^']*')+"""
+    PG_HERE = r'\$\$'
 
     def tokenize(self, text, onerror=None):
         self.onerror = onerror
