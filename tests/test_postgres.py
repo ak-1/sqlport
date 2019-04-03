@@ -180,3 +180,73 @@ def test_create_procedure_update():
     update a set (x, y) = (y, x) where x != y;
     """
     assert tokens(port(i)) == tokens(i)
+
+def test_create_table():
+    i = """
+    create table t (
+    c1 int,
+    c2 lvarchar(1024),
+    c3 varchar(200,100),
+    c4 byte,
+    c5 interval year to month,
+    c6 datetime year to second,
+    primary key (c1) constraint t
+    );
+    """
+    p = """
+    create table t (
+    c1 int,
+    c2 varchar(1024),
+    c3 varchar(200),
+    c4 bytea,
+    c5 interval,
+    c6 timestamp,
+    constraint pk_t primary key (c1)
+    );
+    """
+    assert tokens(port(i)) == tokens(p)
+
+def test_literals():
+    i = """
+    select today, current, "Foo ""Baz"" 'Bingo' Bar" from a;
+    """
+    p = """
+    select current_date, current_timestamp, 'Foo "Baz" ''Bingo'' Bar' from a;
+    """
+    assert tokens(port(i)) == tokens(p)
+
+def test_unqiue():
+    i = """
+    select unique a from b;
+    """
+    p = """
+    select distinct a from b;
+    """
+    assert tokens(port(i)) == tokens(p)
+
+def test_nvl():
+    i = """
+    select nvl(a, 1) from b;
+    """
+    p = """
+    select coalesce(a, 1) from b;
+    """
+    assert tokens(port(i)) == tokens(p)
+
+def test_select_into_temp():
+    i = """
+    select a from b into temp c;
+    """
+    p = """
+    create temp table c as select a from b;
+    """
+    assert tokens(port(i)) == tokens(p)
+
+def test_select_from_function():
+    i = """
+    select x, y from table(foo(a, b)) as t (x, y);
+    """
+    p = """
+    select x, y from foo(a, b) as t (x, y);
+    """
+    assert tokens(port(i)) == tokens(p)
