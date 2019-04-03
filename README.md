@@ -85,6 +85,22 @@ optional arguments:
 | semicolon optional after `END IF`, `END FOR`, ...  | semicolon always required |
 | `EXECUTE PROCEDURE name(x,y)`, `CALL name(x, y)` | `SELECT name(x, y)`, `PERFORM name(x, y)` |
 
+#### merge
+
+- Informix:
+  ```
+  MERGE INTO x USING y ON y.y1 = x.x1
+  WHEN MATCHED THEN UPDATE SET x.x2 = y.y2
+  WHEN NOT MATCHED THEN INSERT (x1, x2) VALUES (y1, y2)
+  ```
+- Postgres:
+  ```
+  INSERT INTO x (x1, x2)
+  SELECT y1, y2 FROM y
+  ON CONFLICT (x1) DO UPDATE SET x1 = y1, x2 = y2
+  ```
+- `MERGE` without WHEN NOT MATCHES THEN INSERT is translated into UPDATE FROM syntax.
+
 #### keywords as names
 
 - Informix: `all`, `end`, `default`, ...
@@ -127,7 +143,7 @@ optional arguments:
 
 - Informix: `SELECT ... FROM a, outer(b)`
 - Postgres: not supported
-- Supports limited convertion to ANSI JOINs for simple cases.
+- Supports limited translation to ANSI JOINs for simple cases.
 
 #### exception handlers and error codes
 
@@ -167,23 +183,6 @@ optional arguments:
 - Postgres: `substring(text from 2 for 3)`
 - Status: This is automatically converted. However this does not work if the slice is on the left side of a `let` statement (variable assignment).
 
-#### merge
-
-- Informix:
-  ```
-  MERGE INTO x USING y ON y.y1 = x.x1
-  WHEN MATCHED THEN UPDATE SET x.x2 = y.y2
-  WHEN NOT MATCHED THEN INSERT (x1, x2) VALUES (y1, y2)
-  ```
-- Postgres:
-  ```
-  INSERT INTO x (x1, x2)
-  SELECT y1, y2 FROM y
-  ON CONFLICT (x1) DO UPDATE SET x1 = y1, x2 = y2
-  ```
-- `MERGE` without WHEN NOT MATCHES THEN INSERT is not supported.
-- The primary key columns (`x1` in `ON CONFLICT (x1)`) has to be entered manually.
-  
 ### Unsupported
 
 | Informix | Postgres |
