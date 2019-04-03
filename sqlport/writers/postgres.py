@@ -39,6 +39,8 @@ exprStatements = (OnException, SetLockMode)
 def ensure_name_prefix(prefix, obj):
     if isinstance(obj.name, OwnerDotName):
         obj = obj.name
+    if isinstance(obj.name, Name):
+        obj = obj.name
     if not obj.name.startswith(prefix):
         obj.name = "pk_" + obj.name
 
