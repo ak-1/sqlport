@@ -39,7 +39,7 @@ optional arguments:
 
 ### Implemented transformations
 
-#### data types
+#### Data types
 
 | Informix  | Postgres            |
 | --------- | ------------------- |
@@ -48,7 +48,7 @@ optional arguments:
 | `byte` | `bytea` |
 | `interval (1) year to month` | `interval` |
 
-#### literals
+#### Literals
 
 | Informix  | Postgres            |
 | --------- | ------------------- |
@@ -56,7 +56,7 @@ optional arguments:
 | `today`   | `current_date`      |
 | `"some text"` | `'some text'` |
 
-#### misc
+#### Misc
 
 | Informix  | Postgres            |
 | --------- | ------------------- |
@@ -68,7 +68,7 @@ optional arguments:
 | `ALTER TABLE ADD CONSTRAINT PRIMARY KEY ...` | `ALTER TABLE ADD PRIMARY KEY ...` |
 | `UPDATE STATISTICS [FOR table_name]` | `ANALYZE [table_name]` |
 
-#### procedures
+#### Procedures
 
 | Informix | Postgres |
 | -------- | -------- |
@@ -85,7 +85,7 @@ optional arguments:
 | semicolon optional after `END IF`, `END FOR`, ...  | semicolon always required |
 | `EXECUTE PROCEDURE name(x,y)`, `CALL name(x, y)` | `SELECT name(x, y)`, `PERFORM name(x, y)` |
 
-#### merge
+#### MERGE
 
 - Informix:
   ```
@@ -101,25 +101,32 @@ optional arguments:
   ```
 - `MERGE` without WHEN NOT MATCHES THEN INSERT is translated into UPDATE FROM syntax.
 
-#### keywords as names
+#### Keywords as names
 
 - Informix: `all`, `end`, `default`, ...
 - Postgres: not allowed
 - append underscore, e.g. `all_`, `end_`, `default_`, ...
 
-#### constraint names
+#### Constraint names
 
 - Postgres: contraint name must differ from table name
 - Prefix constraint name, e.g. with `pk_`
 
 ### Limited transformations
 
-| Informix | Postgres | Remarks |
-| -------- | -------- | -------
-| `SYSTEM "sleep 10"` | `PERFORM system("sleep 10")` | `system` function has to be defined separately |
-| `ALTER TABLE x ADD a int BEFORE c` | | `BEFORE c` is dropped |
+#### SYSTEM
 
-#### foreach
+- Informix: `SYSTEM "sleep 10"`
+- Postgres: `PERFORM system('sleep 10')`
+- The `system` function has to be defined separately
+
+#### ADD column BEFORE
+
+- Informix: `ALTER TABLE x ADD a int BEFORE c`
+- Postgres: `BEFORE` is not supported
+- `BEFORE c` is dropped
+
+#### FOREACH
 
 - Informix:
   ```
@@ -137,15 +144,15 @@ optional arguments:
   ...
   END LOOP;
   ```
-- This conversion is done, but just using the record type would be preferable in several cases. 
+- Using the record type directly could be cleaner.
 
-#### outer
+#### OUTER(table)
 
-- Informix: `SELECT ... FROM a, outer(b)`
+- Informix: `SELECT ... FROM a, OUTER(b)`
 - Postgres: not supported
 - Supports limited translation to ANSI JOINs for simple cases.
 
-#### exception handlers and error codes
+#### Exception handlers and error codes
 
 - Informix:
   ```
@@ -166,24 +173,26 @@ optional arguments:
 - WITH RESUME is not supported
 - ON EXCEPTION without error code is not supported
 
-#### decimal
+#### Unscaled decimal
 
 - Informix: `decimal(20)`
-- Postgres: If you omit the scale in Postgres it default to zero.
+- If you omit the scale in Informix it is not fixed.
+- If you omit the scale in Postgres it defaults to zero.
+- Currently these cases are translated to `DECIMAL(30,10)`.
 
-#### matches
+#### MATCHES
 
-- Informix: `matches "*[a-z]?"`
-- Postgres: `similar to "%[a-z]_"`
-- Status: This is converted for literal string patterns, but not if the pattern is a variable.
+- Informix: `MATCHES "*[a-z]?"`
+- Postgres: `SIMILAR TO "%[a-z]_"`
+- This is converted for literal string patterns, but not if the pattern is a variable.
 
-#### slice
+#### Slice
 
 - Informix: `text[2,4]`
 - Postgres: `substring(text from 2 for 3)`
-- Status: This is automatically converted. However this does not work if the slice is on the left side of a `let` statement (variable assignment).
+- This is automatically converted. However this does not work if the slice is on the left side of a `let` statement (variable assignment).
 
-### Unsupported
+### Not Supported
 
 | Informix | Postgres |
 | -------- | -------- |
