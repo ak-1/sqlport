@@ -63,7 +63,7 @@ optional arguments:
 | `SELECT FIRST 1 ...` | `SELECT ... LIMIT 1` |
 | `SELECT UNIQUE ...` | `SELECT DISTINCT ...` |
 | `SELECT ... INTO TEMP x` | `CREATE TEMP TABLE x AS SELECT ...` |
-| `SELECT x, y, z FROM TABLE(some_function(a, b)) AS (x, y, z)` | SELECT x, y, z FROM some_function(a, b) AS (x, y, z) |
+| `SELECT x, y, z FROM TABLE(some_function(a, b)) AS t (x, y, z)` | SELECT x, y, z FROM some_function(a, b) AS t (x, y, z) |
 | `nvl(x, y)` | `coalesce(x, y)` |
 | `ALTER TABLE ADD CONSTRAINT PRIMARY KEY ...` | `ALTER TABLE ADD PRIMARY KEY ...` |
 | `UPDATE STATISTICS [FOR table_name]` | `ANALYZE [table_name]` |
