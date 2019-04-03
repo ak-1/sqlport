@@ -403,9 +403,9 @@ class SqlParser(Parser):
     @_('WHEN MATCHED THEN UPDATE SET assignment_list')
     def merge_case(self, p):
         return NodeList('UPDATE_A', p.assignment_list)
-    @_('WHEN MATCHED THEN UPDATE SET "(" name_list ")" "=" "(" expr_list ")"')
+    @_('WHEN MATCHED THEN UPDATE SET "(" column_list ")" "=" "(" expr_list ")"')
     def merge_case(self, p):
-        return NodeList('UPDATE_B', p.name_list, p.expr_list)
+        return NodeList('UPDATE_B', p.column_list, p.expr_list)
     @_('WHEN NOT MATCHED THEN INSERT "(" column_list ")" VALUES "(" expr_list ")"')
     def merge_case(self, p):
         return NodeList('INSERT', p.column_list, p.expr_list)
