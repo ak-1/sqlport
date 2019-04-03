@@ -137,7 +137,7 @@ optional arguments:
   ...
   END LOOP;
   ```
-- This conversion is done, but just using the record type would be preferable in several cases. 
+- Using the record type directly could be cleaner.
 
 #### outer
 
