@@ -338,6 +338,16 @@ class PostgresWriter(InformixWriter):
     def View(self):
         return 'CREATE OR REPLACE VIEW ', self.name, ' (\n', Indented(self.columns), '\n) AS\n', self.select
 
+    def Drop(self):
+        yield 'DROP '
+        if self.kind == 'PROCEDURE':
+            yield 'FUNCTION'
+        else:
+            yield self.kind
+        if self.if_exists:
+            yield ' IF EXISTS'
+        yield ' ', self.name
+
     def CreateProcedure(self):
         fix_declarations(self)
         fix_foreach(self)

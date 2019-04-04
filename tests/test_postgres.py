@@ -31,6 +31,15 @@ def test_outer():
     p = "SELECT 1 FROM a LEFT JOIN b ON a.x = b.x;"
     assert port(i) == p
 
+def test_drop():
+    i = """
+    drop procedure x;
+    """
+    p = """
+    drop function x;
+    """
+    assert tokens(port(i)) == tokens(p)
+
 def test_create_procedure():
     i = """
     create procedure test()

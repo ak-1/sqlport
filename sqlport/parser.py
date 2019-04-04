@@ -510,7 +510,7 @@ class SqlParser(Parser):
     def drop_stmt(self, p):
         return Drop(p[1], p.name, p.if_exists)
 
-    @_('TABLE', 'VIEW', 'SYNONYM', 'INDEX', 'PROCEDURE', 'CONSTRAINT')
+    @_('TABLE', 'VIEW', 'SYNONYM', 'INDEX', 'PROCEDURE', 'FUNCTION', 'CONSTRAINT', 'SEQUENCE', 'TRIGGER')
     def kind(self, p):
         return p[0]
     
