@@ -1,4 +1,5 @@
 
+from sys import stderr
 from sly import Lexer
 
 keywords = set("""
@@ -197,6 +198,5 @@ class SqlLexer(Lexer):
             self.onerror(self, t)
         if len(t.value) > 10:
             t.value = t.value[:10] + '...'
-        print("LexError: {}".format(t))
-        #print("Illegal character '%s'" % t.value[0])
+        stderr.write("LexError: {}\n".format(t))
         self.index += 1

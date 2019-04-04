@@ -1,6 +1,6 @@
 
 from termcolor import colored
-import sys
+from sys import stderr
 from sly import Parser
 from . lexer import SqlLexer
 from . node import *
@@ -16,7 +16,7 @@ def find_column(text, token):
 class SqlParser(Parser):
     #debugfile = 'parser.out'
 
-    log = Logger(sys.stderr)
+    log = Logger(stderr)
     
     tokens = SqlLexer.tokens
 
@@ -1145,14 +1145,10 @@ class SqlParser(Parser):
         if self.onerror:
             self.onerror(self, t)
         txt = self.input_text
-        print("Syntax Error [state {}]".format(self.state), t)
-        #print("self", dir(self))
-        #print("statestack", self.statestack)
-        #print("t", dir(t))
+        stderr.write("Syntax Error [state {}] {}\n".format(self.state, t))
         if t != None:
             line_start = txt.rfind('\n', 0, t.index) + 1
             line_end = txt.find('\n', t.index)
-            sys.stdout.write(colored(txt[line_start:t.index], 'yellow'))
-            sys.stdout.write(colored(txt[t.index:t.index+len(t.value)], 'red'))
-            sys.stdout.write(colored(txt[t.index+len(t.value):line_end]+'\n', 'yellow'))
-            #     find_column(t)
+            stderr.write(colored(txt[line_start:t.index], 'yellow'))
+            stderr.write(colored(txt[t.index:t.index+len(t.value)], 'red'))
+            stderr.write(colored(txt[t.index+len(t.value):line_end]+'\n', 'yellow'))
