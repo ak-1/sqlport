@@ -55,6 +55,9 @@ class SqlParser(Parser):
     @_('create_table')
     def statement(self, p):
         return p.create_table
+    @_('create_role')
+    def statement(self, p):
+        return p.create_role
     @_('create_view')
     def statement(self, p):
         return p.create_view
@@ -372,7 +375,11 @@ class SqlParser(Parser):
     """)
     def create_trigger(self, p):
         return CreateTrigger(p.entity_name0, 'INSERT', p.entity_name1, None, p.name, p.expr, p.statement)
-    
+
+    @_('CREATE ROLE STRING')
+    def create_role(self, p):
+        return CreateRole(p.STRING)
+
     @_('CREATE VIEW entity_name "(" name_list ")" AS select')
     def create_view(self, p):
         return View(p.entity_name, p.name_list, p.select)

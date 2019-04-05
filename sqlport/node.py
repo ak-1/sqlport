@@ -297,7 +297,11 @@ class ExecuteImmediate(Node):
 class System(Node):
     def __init__(self, expr):
         self.expr = expr
-        
+
+class CreateRole(Node):
+    def __init__(self, name):
+        self.name = name
+
 class CreateTable(Node):
     def __init__(self, name, columns, temp=False, if_not_exists=False):
         self.name = name

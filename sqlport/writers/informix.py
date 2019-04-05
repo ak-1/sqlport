@@ -523,7 +523,10 @@ class InformixWriter:
         yield from self
         yield Dedent
 
-    def  Br(self):
+    def Br(self):
         yield self()
+
+    def CreateRole(self):
+        yield 'CREATE ROLE ', self.name
 
 writer = InformixWriter
