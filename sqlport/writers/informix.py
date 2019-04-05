@@ -190,7 +190,11 @@ class InformixWriter:
     def AddConstraint(self):
         yield 'ALTER TABLE ', self.table
         yield ' ADD CONSTRAINT ', self.constraint
-            
+
+    def AddColumn(self):
+        yield 'ALTER TABLE ', self.table
+        yield ' ADD ', self.column
+
     def CheckConstraint(self):
         yield 'CHECK (', self.expr, ')'
         if self.name:

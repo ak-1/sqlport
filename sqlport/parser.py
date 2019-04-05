@@ -395,6 +395,13 @@ class SqlParser(Parser):
        'ALTER TABLE entity_name ADD CONSTRAINT "(" constraint ")"')
     def alter_table_stmt(self, p):
         return AddConstraint(p.entity_name, p.constraint)
+    @_('ALTER TABLE entity_name ADD create_table_column before_column')
+    def alter_table_stmt(self, p):
+        return AddColumn(p.entity_name, p.create_table_column)
+
+    @_('BEFORE name', 'empty')
+    def before_column(self, p):
+        return None
 
     @_('MERGE INTO entity_ref_as USING entity_ref_as ON expr merge_case_list')
     def merge_stmt(self, p):
@@ -679,7 +686,7 @@ class SqlParser(Parser):
     def create_table_item(self, p):
         return p.unique_constraint
 
-    @_('name type_expr default not_null primary_key')
+    @_('name type_expr default not_null primary_key in_dbspace')
     def create_table_column(self, p):
         return CreateTableColumn(p.name, p.type_expr, p.default, p.not_null, p.primary_key)
 
@@ -703,6 +710,13 @@ class SqlParser(Parser):
     @_('empty')
     def primary_key(self, p):
         return False
+
+    @_('IN name')
+    def in_dbspace(self, p):
+        return None
+    @_('empty')
+    def in_dbspace(self, p):
+        return None
 
     @_('SELECT first distinct select_column_list into_vars FROM from_expr where group_by having union_list order_by into')
     def select(self, p):
