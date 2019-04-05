@@ -476,7 +476,7 @@ class SqlParser(Parser):
     
     @_('ON LANGUAGE name')
     def grant_on(self, p):
-        return 'LANGUAGE ' + p.name
+        return 'LANGUAGE ' + p.name.name;
     @_('ON grant_entity')
     def grant_on(self, p):
         return p.grant_entity
