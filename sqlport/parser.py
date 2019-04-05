@@ -465,7 +465,7 @@ class SqlParser(Parser):
     def grant_stmt(self, p):
         return Grant(p.permission, p.grant_on, p.grant_role, p.grant_as)
 
-    @_('INSERT', 'UPDATE', 'DELETE', 'ALL', 'INDEX',
+    @_('INSERT', 'UPDATE', 'DELETE', 'ALL', 'INDEX', 'CONNECT',
        'DBA', 'SELECT', 'EXECUTE', 'USAGE')
     def permission(self, p):
         return p[0]
