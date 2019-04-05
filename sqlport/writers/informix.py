@@ -456,8 +456,14 @@ class InformixWriter:
         yield "RAISE EXCEPTION ",  self.sql_error,
         yield ", ", self.isam_error, ', ', self.expr
 
-    def TrimTrailing(self):
-        yield "TRIM(TRAILING FROM ", self.expr, ")"
+    def Trim(self):
+        yield "TRIM("
+        if self.type:
+            yield self.type
+            if self.char:
+                yield ' ', self.char
+            yield ' FROM '
+        yield self.expr, ")"
         
     def Count(self):
         yield "COUNT("

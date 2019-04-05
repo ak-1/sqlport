@@ -1001,12 +1001,9 @@ class SqlParser(Parser):
     @_('expr IS NOT NULL')
     def expr(self, p):
         return IsNotNull(p.expr)
-    @_('TRIM "(" TRAILING FROM expr ")"')
+    @_('TRIM "(" trim_from expr ")"')
     def expr(self, p):
-        return TrimTrailing(p.expr)
-    @_('TRIM "(" expr ")"')
-    def expr(self, p):
-        return Call(p.TRIM, p.expr)
+        return Trim(p.trim_from[0], p.trim_from[1], p.expr)
     @_('COUNT "(" distinct expr ")"')
     def expr(self, p):
         return Count(p.distinct, p.expr)
@@ -1031,6 +1028,24 @@ class SqlParser(Parser):
     @_('CASE case_expr END')
     def expr(self, p):
         return p.case_expr
+
+    @_('trim_type pad_char FROM')
+    def trim_from(self, p):
+        return p[0], p[1]
+    @_('empty')
+    def trim_from(self, p):
+        return None, None
+
+    @_('BOTH', 'LEADING', 'TRAILING')
+    def trim_type(self, p):
+        return p[0]
+
+    @_('expr')
+    def pad_char(self, p):
+        return p[0]
+    @_('empty')
+    def pad_char(self, p):
+        return None
 
     @_('expr AND expr')
     def and_expr(self, p):

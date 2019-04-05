@@ -633,8 +633,10 @@ class Raise(Node):
         self.isam_error = isam_error
         self.expr = expr
                  
-class TrimTrailing(Node):
-    def __init__(self, expr):
+class Trim(Node):
+    def __init__(self, type, char, expr):
+        self.type = type
+        self.char = char
         self.expr = expr
 
 class Count(Node):
