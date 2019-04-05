@@ -344,11 +344,11 @@ class SqlParser(Parser):
     def document(self, p):
         return None
     
-    @_('EXECUTE PROCEDURE entity_name "(" args ")"',
-       'EXECUTE FUNCTION entity_name "(" args ")"',
-       'CALL entity_name "(" args ")"')
+    @_('EXECUTE PROCEDURE entity_ref "(" args ")"',
+       'EXECUTE FUNCTION entity_ref "(" args ")"',
+       'CALL entity_ref "(" args ")"')
     def call_stmt(self, p):
-        return Call(p.entity_name, p.args, True)
+        return Call(p.entity_ref, p.args, True)
 
     @_('expr_list')
     def args(self, p):
