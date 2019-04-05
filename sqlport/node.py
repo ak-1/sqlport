@@ -297,7 +297,11 @@ class ExecuteImmediate(Node):
 class System(Node):
     def __init__(self, expr):
         self.expr = expr
-        
+
+class CreateRole(Node):
+    def __init__(self, name):
+        self.name = name
+
 class CreateTable(Node):
     def __init__(self, name, columns, temp=False, if_not_exists=False):
         self.name = name
@@ -323,6 +327,11 @@ class AddConstraint(Node):
     def __init__(self, table, constraint):
         self.table = table
         self.constraint = constraint
+
+class AddColumn(Node):
+    def __init__(self, table, column):
+        self.table = table
+        self.column = column
 
 class UniqueConstraint(Node):
     def __init__(self, name, column):
@@ -624,8 +633,10 @@ class Raise(Node):
         self.isam_error = isam_error
         self.expr = expr
                  
-class TrimTrailing(Node):
-    def __init__(self, expr):
+class Trim(Node):
+    def __init__(self, type, char, expr):
+        self.type = type
+        self.char = char
         self.expr = expr
 
 class Count(Node):

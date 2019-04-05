@@ -1,6 +1,6 @@
 
 from termcolor import colored
-import sys
+from sys import stderr
 from sly import Parser
 from . lexer import SqlLexer
 from . node import *
@@ -16,7 +16,7 @@ def find_column(text, token):
 class SqlParser(Parser):
     #debugfile = 'parser.out'
 
-    log = Logger(sys.stderr)
+    log = Logger(stderr)
     
     tokens = SqlLexer.tokens
 
@@ -55,6 +55,9 @@ class SqlParser(Parser):
     @_('create_table')
     def statement(self, p):
         return p.create_table
+    @_('create_role')
+    def statement(self, p):
+        return p.create_role
     @_('create_view')
     def statement(self, p):
         return p.create_view
@@ -341,11 +344,11 @@ class SqlParser(Parser):
     def document(self, p):
         return None
     
-    @_('EXECUTE PROCEDURE entity_name "(" args ")"',
-       'EXECUTE FUNCTION entity_name "(" args ")"',
-       'CALL entity_name "(" args ")"')
+    @_('EXECUTE PROCEDURE entity_ref "(" args ")"',
+       'EXECUTE FUNCTION entity_ref "(" args ")"',
+       'CALL entity_ref "(" args ")"')
     def call_stmt(self, p):
-        return Call(p.entity_name, p.args, True)
+        return Call(p.entity_ref, p.args, True)
 
     @_('expr_list')
     def args(self, p):
@@ -372,7 +375,11 @@ class SqlParser(Parser):
     """)
     def create_trigger(self, p):
         return CreateTrigger(p.entity_name0, 'INSERT', p.entity_name1, None, p.name, p.expr, p.statement)
-    
+
+    @_('CREATE ROLE STRING')
+    def create_role(self, p):
+        return CreateRole(p.STRING)
+
     @_('CREATE VIEW entity_name "(" name_list ")" AS select')
     def create_view(self, p):
         return View(p.entity_name, p.name_list, p.select)
@@ -388,6 +395,13 @@ class SqlParser(Parser):
        'ALTER TABLE entity_name ADD CONSTRAINT "(" constraint ")"')
     def alter_table_stmt(self, p):
         return AddConstraint(p.entity_name, p.constraint)
+    @_('ALTER TABLE entity_name ADD create_table_column before_column')
+    def alter_table_stmt(self, p):
+        return AddColumn(p.entity_name, p.create_table_column)
+
+    @_('BEFORE name', 'empty')
+    def before_column(self, p):
+        return None
 
     @_('MERGE INTO entity_ref_as USING entity_ref_as ON expr merge_case_list')
     def merge_stmt(self, p):
@@ -443,7 +457,7 @@ class SqlParser(Parser):
     @_('FOR TABLE entity_ref')
     def for_table(self, p):
         return p.entity_ref
-    @_('empty')
+    @_('FOR TABLE', 'empty')
     def for_table(self, p):
         return None
     
@@ -451,7 +465,7 @@ class SqlParser(Parser):
     def grant_stmt(self, p):
         return Grant(p.permission, p.grant_on, p.grant_role, p.grant_as)
 
-    @_('INSERT', 'UPDATE', 'DELETE', 'ALL', 'INDEX',
+    @_('INSERT', 'UPDATE', 'DELETE', 'ALL', 'INDEX', 'CONNECT',
        'DBA', 'SELECT', 'EXECUTE', 'USAGE')
     def permission(self, p):
         return p[0]
@@ -462,7 +476,7 @@ class SqlParser(Parser):
     
     @_('ON LANGUAGE name')
     def grant_on(self, p):
-        return 'LANGUAGE ' + p.name
+        return 'LANGUAGE ' + p.name.name;
     @_('ON grant_entity')
     def grant_on(self, p):
         return p.grant_entity
@@ -672,7 +686,7 @@ class SqlParser(Parser):
     def create_table_item(self, p):
         return p.unique_constraint
 
-    @_('name type_expr default not_null primary_key')
+    @_('name type_expr default not_null primary_key in_dbspace')
     def create_table_column(self, p):
         return CreateTableColumn(p.name, p.type_expr, p.default, p.not_null, p.primary_key)
 
@@ -696,6 +710,13 @@ class SqlParser(Parser):
     @_('empty')
     def primary_key(self, p):
         return False
+
+    @_('IN name')
+    def in_dbspace(self, p):
+        return None
+    @_('empty')
+    def in_dbspace(self, p):
+        return None
 
     @_('SELECT first distinct select_column_list into_vars FROM from_expr where group_by having union_list order_by into')
     def select(self, p):
@@ -980,12 +1001,9 @@ class SqlParser(Parser):
     @_('expr IS NOT NULL')
     def expr(self, p):
         return IsNotNull(p.expr)
-    @_('TRIM "(" TRAILING FROM expr ")"')
+    @_('TRIM "(" trim_from expr ")"')
     def expr(self, p):
-        return TrimTrailing(p.expr)
-    @_('TRIM "(" expr ")"')
-    def expr(self, p):
-        return Call(p.TRIM, p.expr)
+        return Trim(p.trim_from[0], p.trim_from[1], p.expr)
     @_('COUNT "(" distinct expr ")"')
     def expr(self, p):
         return Count(p.distinct, p.expr)
@@ -1010,6 +1028,24 @@ class SqlParser(Parser):
     @_('CASE case_expr END')
     def expr(self, p):
         return p.case_expr
+
+    @_('trim_type pad_char FROM')
+    def trim_from(self, p):
+        return p[0], p[1]
+    @_('empty')
+    def trim_from(self, p):
+        return None, None
+
+    @_('BOTH', 'LEADING', 'TRAILING')
+    def trim_type(self, p):
+        return p[0]
+
+    @_('expr')
+    def pad_char(self, p):
+        return p[0]
+    @_('empty')
+    def pad_char(self, p):
+        return None
 
     @_('expr AND expr')
     def and_expr(self, p):
@@ -1145,14 +1181,10 @@ class SqlParser(Parser):
         if self.onerror:
             self.onerror(self, t)
         txt = self.input_text
-        print("Syntax Error [state {}]".format(self.state), t)
-        #print("self", dir(self))
-        #print("statestack", self.statestack)
-        #print("t", dir(t))
+        stderr.write("Syntax Error [state {}] {}\n".format(self.state, t))
         if t != None:
             line_start = txt.rfind('\n', 0, t.index) + 1
             line_end = txt.find('\n', t.index)
-            sys.stdout.write(colored(txt[line_start:t.index], 'yellow'))
-            sys.stdout.write(colored(txt[t.index:t.index+len(t.value)], 'red'))
-            sys.stdout.write(colored(txt[t.index+len(t.value):line_end]+'\n', 'yellow'))
-            #     find_column(t)
+            stderr.write(colored(txt[line_start:t.index], 'yellow'))
+            stderr.write(colored(txt[t.index:t.index+len(t.value)], 'red'))
+            stderr.write(colored(txt[t.index+len(t.value):line_end]+'\n', 'yellow'))

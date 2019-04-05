@@ -73,6 +73,7 @@ optional arguments:
 | Informix | Postgres |
 | -------- | -------- |
 | `CREATE PROCEDURE` | `CREATE FUNCTION` |
+| `DROP PROCEDURE` | `DROP FUNCTION` |
 | `RETURNING` | `RETURNS` |
 | no return value | `RETURNS void` |
 | `DEFINE x integer` | `x integer` in `DECLARE` block |

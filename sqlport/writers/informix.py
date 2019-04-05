@@ -190,7 +190,11 @@ class InformixWriter:
     def AddConstraint(self):
         yield 'ALTER TABLE ', self.table
         yield ' ADD CONSTRAINT ', self.constraint
-            
+
+    def AddColumn(self):
+        yield 'ALTER TABLE ', self.table
+        yield ' ADD ', self.column
+
     def CheckConstraint(self):
         yield 'CHECK (', self.expr, ')'
         if self.name:
@@ -452,8 +456,14 @@ class InformixWriter:
         yield "RAISE EXCEPTION ",  self.sql_error,
         yield ", ", self.isam_error, ', ', self.expr
 
-    def TrimTrailing(self):
-        yield "TRIM(TRAILING FROM ", self.expr, ")"
+    def Trim(self):
+        yield "TRIM("
+        if self.type:
+            yield self.type
+            if self.char:
+                yield ' ', self.char
+            yield ' FROM '
+        yield self.expr, ")"
         
     def Count(self):
         yield "COUNT("
@@ -523,7 +533,10 @@ class InformixWriter:
         yield from self
         yield Dedent
 
-    def  Br(self):
+    def Br(self):
         yield self()
+
+    def CreateRole(self):
+        yield 'CREATE ROLE ', self.name
 
 writer = InformixWriter
