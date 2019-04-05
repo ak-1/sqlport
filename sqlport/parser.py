@@ -457,7 +457,7 @@ class SqlParser(Parser):
     @_('FOR TABLE entity_ref')
     def for_table(self, p):
         return p.entity_ref
-    @_('empty')
+    @_('FOR TABLE', 'empty')
     def for_table(self, p):
         return None
     
