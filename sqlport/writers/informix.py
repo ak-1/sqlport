@@ -45,8 +45,10 @@ class InformixWriter:
         yield '\n', self.type, ' ', self.select
 
     def Table(self):
-        yield 'TABLE(', self.expr, ') AS ', self.name, ' (', Indented(self.columns), ')'
-    
+        yield 'TABLE(', self.expr, ')'
+        if self.name:
+            yield ' AS ', self.name, ' (', Indented(self.columns), ')'
+
     def OrderByItem(self):
         yield self.expr
         if self.dir:

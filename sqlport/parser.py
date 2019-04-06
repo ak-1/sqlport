@@ -424,12 +424,12 @@ class SqlParser(Parser):
     def merge_case(self, p):
         return NodeList('INSERT', p.column_list, p.expr_list)
     
-    @_('UPDATE entity_ref_as SET assignment_list where')
+    @_('UPDATE table_ref SET assignment_list where')
     def update_stmt(self, p):
-        return UpdateA(p.entity_ref_as, p.assignment_list, None, p.where)
-    @_('UPDATE entity_ref_as SET "(" name_list ")" "=" "(" expr_list ")" where')
+        return UpdateA(p.table_ref, p.assignment_list, None, p.where)
+    @_('UPDATE table_ref SET "(" name_list ")" "=" "(" expr_list ")" where')
     def update_stmt(self, p):
-        return UpdateB(p.entity_ref_as, p.name_list, p[8], None, p.where)
+        return UpdateB(p.table_ref, p.name_list, p[8], None, p.where)
 
     @_('assignment')
     def assignment_list(self, p):
@@ -832,19 +832,32 @@ class SqlParser(Parser):
     def as_name(self, p):
         return None
     
-    @_('DELETE FROM NAME where')
+    @_('DELETE FROM table_ref where',
+       'DELETE table_ref where')
     def delete_stmt(self, p):
-        return Delete(p.NAME, p.where)
+        return Delete(p.table_ref, p.where)
 
-    @_('INSERT INTO entity_ref_as insert_stmt_name_list VALUES "(" expr_list ")"')
+    @_('INSERT INTO table_ref insert_stmt_name_list VALUES "(" expr_list ")"')
     def insert_stmt(self, p):
-        return Insert(p.entity_ref_as, p.insert_stmt_name_list, p.expr_list, None)
-    @_('INSERT INTO entity_ref_as insert_stmt_name_list select')
+        return Insert(p.table_ref, p.insert_stmt_name_list, p.expr_list, None)
+    @_('INSERT INTO table_ref insert_stmt_name_list select')
     def insert_stmt(self, p):
-        return Insert(p.entity_ref_as, p.insert_stmt_name_list, None, p.select)
-    @_('INSERT INTO entity_ref_as insert_stmt_name_list call_stmt')
+        return Insert(p.table_ref, p.insert_stmt_name_list, None, p.select)
+    @_('INSERT INTO table_ref insert_stmt_name_list call_stmt')
     def insert_stmt(self, p):
-        return Insert(p.entity_ref_as, p.insert_stmt_name_list, None, p.call_stmt)
+        return Insert(p.table_ref, p.insert_stmt_name_list, None, p.call_stmt)
+
+    @_('entity_ref_as')
+    def table_ref(self, p):
+        return p.entity_ref_as
+    @_('table_expr')
+    def table_ref(self, p):
+        return p.table_expr
+    
+    @_('TABLE "(" FUNCTION expr ")" as_name insert_stmt_name_list',
+       'TABLE "(" expr ")" as_name insert_stmt_name_list')
+    def table_expr(self, p):
+        return Table(p.expr, p.as_name, p.insert_stmt_name_list)
 
     @_('"(" name_list ")"')
     def insert_stmt_name_list(self, p):

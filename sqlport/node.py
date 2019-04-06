@@ -164,7 +164,7 @@ class Select(Node):
         self.unions = unions
 
 class Table(Node):
-    def __init__(self, expr, name, columns):
+    def __init__(self, expr, name=None, columns=None):
         self.expr = expr
         self.name = name
         self.columns = columns
