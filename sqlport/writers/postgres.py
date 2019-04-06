@@ -203,6 +203,8 @@ class PostgresWriter(InformixWriter):
             yield br, 'ORDER BY ', self.order_by
         if self.first:
             yield br, 'LIMIT ', self.first
+        if self.skip:
+            yield br, 'OFFSET ', self.skip
         if self.unions:
             for union in self.unions:
                 yield br, union

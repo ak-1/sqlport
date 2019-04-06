@@ -17,6 +17,8 @@ class InformixWriter:
 
     def Select(self):
         yield "SELECT "
+        if self.skip:
+            yield 'SKIP ', self.skip, ' '
         if self.first:
             yield 'FIRST ', self.first, ' '
         if self.distinct:

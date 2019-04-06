@@ -718,9 +718,9 @@ class SqlParser(Parser):
     def in_dbspace(self, p):
         return None
 
-    @_('SELECT first distinct select_column_list into_vars FROM from_expr where group_by having union_list order_by into')
+    @_('SELECT skip first distinct select_column_list into_vars FROM from_expr where group_by having union_list order_by into')
     def select(self, p):
-        return Select(p.first, p.distinct, p.select_column_list, p.into_vars, p.from_expr, p.where, p.group_by, p.having, p.union_list, p.order_by, p.into)
+        return Select(p.skip, p.first, p.distinct, p.select_column_list, p.into_vars, p.from_expr, p.where, p.group_by, p.having, p.union_list, p.order_by, p.into)
 
     @_('union_select')
     def union_list(self, p):
@@ -736,9 +736,9 @@ class SqlParser(Parser):
     def union_select(self, p):
         return Union(p.union, p.simple_select)
 
-    @_('SELECT first distinct select_column_list into_vars FROM from_expr where group_by having')
+    @_('SELECT skip first distinct select_column_list into_vars FROM from_expr where group_by having')
     def simple_select(self, p):
-        return Select(p.first, p.distinct, p.select_column_list, p.into_vars, p.from_expr, p.where, p.group_by, p.having)
+        return Select(p.skip, p.first, p.distinct, p.select_column_list, p.into_vars, p.from_expr, p.where, p.group_by, p.having)
 
     @_('UNION')
     def union(self, p):
@@ -851,6 +851,13 @@ class SqlParser(Parser):
         return p.name_list
     @_('empty')
     def insert_stmt_name_list(self, p):
+        return None
+
+    @_('SKIP UINT')
+    def skip(self, p):
+        return p.UINT
+    @_('empty')
+    def skip(self, p):
         return None
 
     @_('FIRST UINT')

@@ -149,7 +149,8 @@ class CommaList(NodeList): pass
 class Indented(NodeList): pass
 
 class Select(Node):
-    def __init__(self, first, distinct, columns, into_vars, table, where, group_by, having, unions=None, order_by=None, into=None):
+    def __init__(self, skip, first, distinct, columns, into_vars, table, where, group_by, having, unions=None, order_by=None, into=None):
+        self.skip = skip
         self.first = first
         self.distinct = distinct
         self.columns = columns
