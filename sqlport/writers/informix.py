@@ -17,6 +17,8 @@ class InformixWriter:
 
     def Select(self):
         yield "SELECT "
+        if self.skip:
+            yield 'SKIP ', self.skip, ' '
         if self.first:
             yield 'FIRST ', self.first, ' '
         if self.distinct:
@@ -43,8 +45,10 @@ class InformixWriter:
         yield '\n', self.type, ' ', self.select
 
     def Table(self):
-        yield 'TABLE(', self.expr, ') AS ', self.name, ' (', Indented(self.columns), ')'
-    
+        yield 'TABLE(', self.expr, ')'
+        if self.name:
+            yield ' AS ', self.name, ' (', Indented(self.columns), ')'
+
     def OrderByItem(self):
         yield self.expr
         if self.dir:
@@ -150,6 +154,8 @@ class InformixWriter:
         if self.statement:
             yield 'CALL '
         yield self.name, '(', br, self.args, br, ')'
+        if self.returning:
+            yield ' RETURNING ', self.returning
 
     def Nvl(self):
         yield 'nvl(', self.args, ')'
@@ -212,7 +218,7 @@ class InformixWriter:
             yield ' CONSTRAINT ', self.name
 
     def UniqueConstraint(self):
-        yield 'UNIQUE (', self.column, ')'
+        yield 'UNIQUE (', self.columns, ')'
         if self.name:
             yield ' CONSTRAINT ', self.name
 
@@ -238,12 +244,30 @@ class InformixWriter:
     def Interval(self):
         yield 'INTERVAL (', self.value, ') ', self.a, ' TO ', self.b
         
+    def RowType(self):
+        yield 'ROW(', self.type,
+        if self.not_null:
+            yield ' NOT NULL'
+        yield ')'
+        
     def MultiSetType(self):
         yield 'MULTISET(', self.type,
         if self.not_null:
             yield ' NOT NULL'
         yield ')'
 
+    def SetType(self):
+        yield 'SET(', self.type,
+        if self.not_null:
+            yield ' NOT NULL'
+        yield ')'
+        
+    def ListType(self):
+        yield 'LIST(', self.type,
+        if self.not_null:
+            yield ' NOT NULL'
+        yield ')'
+        
     def MultiSetValue(self):
         yield 'MULTISET(', self.select, ')'
 
@@ -538,5 +562,28 @@ class InformixWriter:
 
     def CreateRole(self):
         yield 'CREATE ROLE ', self.name
+
+    def BeginTransaction(self):
+        yield 'BEGIN TRANSACTION'
+
+    def CommitTransaction(self):
+        yield 'COMMIT TRANSACTION'
+
+    def CurrentOf(self):
+        yield 'CURRENT OF ', self.name
+
+    def SetConstraints(self):
+        yield 'SET CONSTRAINTS ', self.name
+        if self.mode:
+            yield ' ', self.mode
+
+    def Substring(self):
+        yield 'SUBSTRING(', self.expr, ' FROM ', self.from_
+        if self.for_:
+            yield ' FOR ', self.for_
+        yield ')'
+
+    def ListExpr(self):
+        yield 'LIST {', self.expr_list, '}'
 
 writer = InformixWriter

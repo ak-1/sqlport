@@ -203,6 +203,8 @@ class PostgresWriter(InformixWriter):
             yield br, 'ORDER BY ', self.order_by
         if self.first:
             yield br, 'LIMIT ', self.first
+        if self.skip:
+            yield br, 'OFFSET ', self.skip
         if self.unions:
             for union in self.unions:
                 yield br, union
@@ -231,7 +233,7 @@ class PostgresWriter(InformixWriter):
     def UniqueConstraint(self):
         if self.name:
             yield 'CONSTRAINT ', self.name, ' '
-        yield 'UNIQUE (', self.column, ')'
+        yield 'UNIQUE (', self.columns, ')'
 
     def OwnerDotName(self):
         #yield self.owner, '.', self.name
@@ -430,6 +432,8 @@ class PostgresWriter(InformixWriter):
         if self.statement:
             yield 'SELECT '
         yield self.name, '(', br, self.args, br, ')'
+        if self.returning:
+            yield ' ', NotSupported('RETURNING ', self.returning)
 
     def OnException(self):
         yield "EXCEPTION\n", Indent
