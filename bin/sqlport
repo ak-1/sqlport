@@ -25,13 +25,14 @@ def parse_args():
     group.add_argument('infile', metavar="INFILE", default=['-'], nargs='*')
     group.add_argument('--file-list', '-f', metavar="FILE", const='-', nargs='?', help="read file list from file or stdin")
 
-    parser.add_argument('--quiet', '-q', action='count', help="do not output anything")
-    parser.add_argument('--verbose', '-v', action='count', help="verbose output")
-    parser.add_argument('--debug', '-D', action='count', help="debugging output")
+    parser.add_argument('--quiet', '-q', default=0, action='count', help="do not output anything")
+    parser.add_argument('--verbose', '-v', default=0, action='count', help="verbose output")
+    parser.add_argument('--debug', '-D', default=0, action='count', help="debugging output")
 
     parser.add_argument('--parse-tree', '-T', action='store_true', help="show parse tree")
     parser.add_argument('--lex', '-L', action='store_true', help="show lexer output")
     parser.add_argument('--informix', '-i', action='store_true', help="generate informix SQL")
+    parser.add_argument('--max-errors', '-e', type=int, default=1000, help="stop after this many errors")
 
     return parser.parse_args()
 
@@ -65,7 +66,7 @@ def main():
     error_count = ErrorCount()
     if args.debug:
         Logger.level += args.debug
-    from sqlport.engine import lex, parse
+    from sqlport.engine import lex, parse, TooManyErrors
     if args.informix:
         from sqlport.writers import informix
         node.writer = informix.writer        
@@ -88,7 +89,10 @@ def main():
         if args.lex:
             lex(text, outfh, args.verbose, onerror=error_count)
         else:
-            tree = parse(text, outfh, args.verbose, onerror=error_count)
+            try:
+                tree = parse(text, outfh, args.verbose, onerror=error_count, maxerrors=args.max_errors)
+            except TooManyErrors:
+                sys.exit(0)
             if args.parse_tree:
                 #tree.set_parents()
                 pretty_print(tree)

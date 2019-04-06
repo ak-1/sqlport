@@ -2,7 +2,7 @@
 from termcolor import colored
 from sys import stderr
 from sly import Parser
-from . lexer import SqlLexer
+from . lexer import SqlLexer, TooManyErrors
 from . node import *
 from . logger import Logger
 
@@ -1173,7 +1173,9 @@ class SqlParser(Parser):
     def empty(self, p):
         pass
 
-    def parse(self, tokens, onerror=None):
+    def parse(self, tokens, onerror=None, maxerrors=1000000):
+        self.maxerrors = maxerrors
+        self.errcount = 0
         self.onerror = onerror
         return super().parse(tokens)
 
@@ -1188,3 +1190,6 @@ class SqlParser(Parser):
             stderr.write(colored(txt[line_start:t.index], 'yellow'))
             stderr.write(colored(txt[t.index:t.index+len(t.value)], 'red'))
             stderr.write(colored(txt[t.index+len(t.value):line_end]+'\n', 'yellow'))
+        self.errcount += 1
+        if self.errcount >= self.maxerrors:
+            raise TooManyErrors()

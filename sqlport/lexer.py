@@ -25,6 +25,9 @@ START PUBLIC USAGE LANGUAGE NVL
 ELSIF LOOP LIMIT
 """.split())
 
+class TooManyErrors(Exception):
+    pass
+
 class SqlLexer(Lexer):
     literals = { ';', ',', '(', ')', '.', '=', '+', '-', '*', '/', '<', '>', '[', ']', ':', '@' }
     tokens = {
@@ -191,7 +194,9 @@ class SqlLexer(Lexer):
     STRING = r"""("[^"]*")+|('[^']*')+"""
     PG_HERE = r'\$\$'
 
-    def tokenize(self, text, onerror=None):
+    def tokenize(self, text, onerror=None, maxerrors=1000000):
+        self.maxerrors = maxerrors
+        self.errcount = 0
         self.onerror = onerror
         return super().tokenize(text)
 
@@ -202,3 +207,6 @@ class SqlLexer(Lexer):
             t.value = t.value[:10] + '...'
         stderr.write("LexError: {}\n".format(t))
         self.index += 1
+        self.errcount += 1
+        if self.errcount >= self.maxerrors:
+            raise TooManyErrors()
