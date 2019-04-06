@@ -124,10 +124,26 @@ class SqlParser(Parser):
     @_('set_lock_mode')
     def statement(self, p):
         return p.set_lock_mode
+    @_('BEGIN WORK', 'BEGIN TRANSACTION')
+    def statement(self, p):
+        return BeginTransaction()
+    @_('COMMIT WORK', 'COMMIT TRANSACTION')
+    def statement(self, p):
+        return CommitTransaction()
+    @_('SET CONSTRAINTS name constraint_mode')
+    def statement(self, p):
+        return SetConstraints(p.name, p.constraint_mode)
     @_('empty')
     def statement(self, p):
         return None
 
+    @_('ENABLED', 'DISABLED')
+    def constraint_mode(self, p):
+        return p[0]
+    @_('empty')
+    def constraint_mode(self, p):
+        return None
+    
     @_("""
     CREATE procedure entity_name "(" parameter_list ")" returning with_variant opt_semicolon
     declare_list
@@ -344,11 +360,20 @@ class SqlParser(Parser):
     def document(self, p):
         return None
     
-    @_('EXECUTE PROCEDURE entity_ref "(" args ")"',
-       'EXECUTE FUNCTION entity_ref "(" args ")"',
-       'CALL entity_ref "(" args ")"')
+    @_('execute_procedure entity_ref "(" args ")" call_returning')
     def call_stmt(self, p):
-        return Call(p.entity_ref, p.args, True)
+        return Call(p.entity_ref, p.args, True, returning=p.call_returning)
+
+    @_('EXECUTE PROCEDURE', 'EXECUTE FUNCTION', 'CALL')
+    def execute_procedure(self, p):
+        pass
+
+    @_('RETURNING name_list')
+    def call_returning(self, p):
+        return p.name_list
+    @_('empty')
+    def call_returning(self, p):
+        return None
 
     @_('expr_list')
     def args(self, p):
@@ -465,8 +490,8 @@ class SqlParser(Parser):
     def grant_stmt(self, p):
         return Grant(p.permission, p.grant_on, p.grant_role, p.grant_as)
 
-    @_('INSERT', 'UPDATE', 'DELETE', 'ALL', 'INDEX', 'CONNECT',
-       'DBA', 'SELECT', 'EXECUTE', 'USAGE')
+    @_('INSERT', 'UPDATE', 'DELETE', 'ALL', 'INDEX', 'CONNECT', 'ALTER',
+       'DBA', 'SELECT', 'EXECUTE', 'USAGE', 'STRING', 'REFERENCES')
     def permission(self, p):
         return p[0]
 
@@ -686,9 +711,13 @@ class SqlParser(Parser):
     def create_table_item(self, p):
         return p.unique_constraint
 
-    @_('name type_expr default not_null primary_key in_dbspace')
+    @_('name type_expr default not_null primary_key in_dbspace disabled')
     def create_table_column(self, p):
         return CreateTableColumn(p.name, p.type_expr, p.default, p.not_null, p.primary_key)
+
+    @_('DISABLED', 'empty')
+    def disabled(self, p):
+        return None
 
     @_('DEFAULT literal')
     def default(self, p):
@@ -773,9 +802,9 @@ class SqlParser(Parser):
     @_('OUTER "(" from_expr ")"')
     def from_expr(self, p):
         return Outer(p.from_expr)
-    @_('TABLE "(" expr ")" as_name "(" name_list ")"')
+    @_('table_expr')
     def from_expr(self, p):
-        return Table(p.expr, p.as_name, p.name_list)
+        return p.table_expr
     @_('entity_ref_as')
     def from_expr(self, p):
         return p.entity_ref_as
@@ -790,6 +819,9 @@ class SqlParser(Parser):
        'CROSS JOIN')
     def join(self, p):
         return p[0]
+    @_('JOIN')
+    def join(self, p):
+        return 'INNER'
 
     @_('ON expr')
     def on_expr(self, p):
@@ -1009,12 +1041,20 @@ class SqlParser(Parser):
     @_('EXISTS "(" select ")"')
     def expr(self, p):
         return Exists(p.select)
-    @_('expr IN "(" expr_list ")"', 'expr IN "(" select ")"')
+    @_('expr IN "(" expr_list ")"',
+       'expr IN "(" select ")"')
     def expr(self, p):
-        return In(p[0], p[3])
-    @_('expr NOT IN "(" expr_list ")"', 'expr NOT IN "(" select ")"')
+        return In(p.expr, p[3])
+    @_('expr IN expr')
     def expr(self, p):
-        return NotIn(p[0], p[4])
+        return In(p.expr0, p.expr1)
+    @_('expr NOT IN "(" expr_list ")"',
+       'expr NOT IN "(" select ")"')
+    def expr(self, p):
+        return NotIn(p.expr, p[4])
+    @_('expr NOT IN expr')
+    def expr(self, p):
+        return NotIn(p.expr0, p.expr1)
     @_('expr IS NULL')
     def expr(self, p):
         return IsNull(p.expr)
@@ -1024,6 +1064,9 @@ class SqlParser(Parser):
     @_('TRIM "(" trim_from expr ")"')
     def expr(self, p):
         return Trim(p.trim_from[0], p.trim_from[1], p.expr)
+    @_('SUBSTRING "(" expr FROM expr for_expr ")"')
+    def expr(self, p):
+        return Substring(p.expr0, p.expr1, p.for_expr)
     @_('COUNT "(" distinct expr ")"')
     def expr(self, p):
         return Count(p.distinct, p.expr)
@@ -1048,6 +1091,19 @@ class SqlParser(Parser):
     @_('CASE case_expr END')
     def expr(self, p):
         return p.case_expr
+    @_('CURRENT OF name')
+    def expr(self, p):
+        return CurrentOf(p.name)
+    @_('LIST "{" args "}"')
+    def expr(self, p):
+        return ListExpr(p.args)
+
+    @_('FOR expr')
+    def for_expr(self, p):
+        return p.expr
+    @_('empty')
+    def for_expr(self, p):
+        return None
 
     @_('trim_type pad_char FROM')
     def trim_from(self, p):
@@ -1126,19 +1182,59 @@ class SqlParser(Parser):
     @_('CURRENT time_unit TO time_unit')
     def literal(self, p):
         return Current(p.time_unit0, p.time_unit1)
-    @_('INTERVAL "(" UINT ")" time_unit TO time_unit')
+    @_('INTERVAL "(" interval_values ")" time_unit TO time_unit')
     def literal(self, p):
-        return Interval(p.UINT, p.time_unit0, p.time_unit1)
+        return Interval(p.interval_values, p.time_unit0, p.time_unit1)
 
+    @_('UINT UINT ":" UINT')
+    def interval_values(self, p):
+        return "{} {}:{}".format(p.UINT0, p.UINT1, p.UINT2)
+    @_('UINT ":" UINT')
+    def interval_values(self, p):
+        return "{}:{}".format(p.UINT0, p.UINT1)
+    @_('UINT')
+    def interval_values(self, p):
+        return p[0]
+
+    @_('ROW "(" row_list ")"')
+    def type_expr(self, p):
+        return RowType(p.row_list)
     @_('MULTISET "(" simple_type_expr ")"')
     def type_expr(self, p):
         return MultiSetType(p.simple_type_expr)
     @_('MULTISET "(" simple_type_expr NOT NULL ")"')
     def type_expr(self, p):
         return MultiSetType(p.simple_type_expr, True)
+    @_('SET "(" simple_type_expr ")"')
+    def type_expr(self, p):
+        return SetType(p.simple_type_expr)
+    @_('SET "(" simple_type_expr NOT NULL ")"')
+    def type_expr(self, p):
+        return SetType(p.simple_type_expr, True)
+    @_('LIST "(" simple_type_expr ")"')
+    def type_expr(self, p):
+        return ListType(p.simple_type_expr)
+    @_('LIST "(" simple_type_expr NOT NULL ")"')
+    def type_expr(self, p):
+        return ListType(p.simple_type_expr, True)
     @_('simple_type_expr')
     def type_expr(self, p):
         return p.simple_type_expr
+
+
+    @_('row_type')
+    def row_list(self, p):
+        return NodeList(p.row_type)
+    @_('row_list "," row_type')
+    def row_list(self, p):
+        return p.row_list.append(p.row_type)
+
+    @_('simple_type_expr')
+    def row_type(self, p):
+        return p.simple_type_expr
+    @_('create_table_column')
+    def row_type(self, p):
+        return p.create_table_column
 
     @_('DATETIME time_unit TO time_unit', 'INTERVAL time_unit TO time_unit')
     def simple_type_expr(self, p):
@@ -1156,8 +1252,8 @@ class SqlParser(Parser):
     def simple_type_expr(self, p):
         return Type(p.datatype, p.UINT0, p.UINT1)
 
-    @_('CHAR', 'DECIMAL', 'DATE', 'INT', 'INT8', 'BYTE', 'BOOLEAN',
-       'SMALLINT', 'INTEGER', 'LVARCHAR', 'SERIAL', 'VARCHAR',
+    @_('CHAR', 'DECIMAL', 'DATE', 'INT', 'INT8', 'BYTE', 'BOOLEAN', 'BLOB',
+       'SMALLINT', 'INTEGER', 'LVARCHAR', 'SERIAL', 'VARCHAR', 'TEXT',
        'INTERVAL', 'DATETIME')
     def datatype(self, p):
         return p[0]
@@ -1185,6 +1281,8 @@ class SqlParser(Parser):
         return p[0]
 
     @_('NAME', 'ALL', 'KEY', 'UPDATE', 'time_unit_name', 'MATCHED', 'END', 'DEFAULT',
+       'LANGUAGE', 'ROLE', 'VARIANT', 'INCREMENT', 'CONSTRAINT', 'USAGE', #'GROUP',
+       'COUNT',
        'VALUE', 'datatype', 'TRIM', 'BEGIN', 'GLOBAL', 'STEP', 'SHARE', '*', 'NEW', 'OLD')
     def name(self, p):
         return Name(p[0])

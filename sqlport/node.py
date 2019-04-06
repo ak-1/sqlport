@@ -286,10 +286,11 @@ class Join(Node):
         self.on = on
 
 class Call(Node):
-    def __init__(self, name, args, statement=False):
+    def __init__(self, name, args, statement=False, returning=None):
         self.name = name
         self.args = args
         self.statement = statement
+        self.returning = returning
 
 class ExecuteImmediate(Node):
     def __init__(self, expr):
@@ -380,7 +381,22 @@ class Interval(Node):
         self.a = a
         self.b = b
 
+class RowType(Node):
+    def __init__(self, type, not_null=False):
+        self.type = type
+        self.not_null = not_null
+
 class MultiSetType(Node):
+    def __init__(self, type, not_null=False):
+        self.type = type
+        self.not_null = not_null
+
+class SetType(Node):
+    def __init__(self, type, not_null=False):
+        self.type = type
+        self.not_null = not_null
+
+class ListType(Node):
     def __init__(self, type, not_null=False):
         self.type = type
         self.not_null = not_null
@@ -703,6 +719,28 @@ class NotSupported(Node):
 class String(Node):
     def __init__(self, value):
         self.value = value
+
+class CurrentOf(Node):
+    def __init__(self, name):
+        self.name = name
+
+class SetConstraints(Node):
+    def __init__(self, name, mode):
+        self.name = name
+        self.mode = mode
+
+class BeginTransaction(Node): pass
+class CommitTransaction(Node): pass
+
+class Substring(Node):
+    def __init__(self, expr, from_, for_):
+        self.expr = expr
+        self.from_ = from_
+        self.for_ = for_
+
+class ListExpr(Node):
+    def __init__(self, expr_list):
+        self.expr_list = expr_list
 
 class Noop(Node): pass
 

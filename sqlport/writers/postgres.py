@@ -432,6 +432,8 @@ class PostgresWriter(InformixWriter):
         if self.statement:
             yield 'SELECT '
         yield self.name, '(', br, self.args, br, ')'
+        if self.returning:
+            yield ' ', NotSupported('RETURNING ', self.returning)
 
     def OnException(self):
         yield "EXCEPTION\n", Indent
