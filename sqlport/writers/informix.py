@@ -216,7 +216,7 @@ class InformixWriter:
             yield ' CONSTRAINT ', self.name
 
     def UniqueConstraint(self):
-        yield 'UNIQUE (', self.column, ')'
+        yield 'UNIQUE (', self.columns, ')'
         if self.name:
             yield ' CONSTRAINT ', self.name
 

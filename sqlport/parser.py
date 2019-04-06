@@ -621,9 +621,9 @@ class SqlParser(Parser):
     def check_constraint(self, p):
         return CheckConstraint(p.constraint_entity_name, p.expr)
 
-    @_('UNIQUE "(" name ")" constraint_entity_name')
+    @_('UNIQUE "(" name_list ")" constraint_entity_name')
     def unique_constraint(self, p):
-        return UniqueConstraint(p.constraint_entity_name, p.name)
+        return UniqueConstraint(p.constraint_entity_name, p.name_list)
 
     @_('CONSTRAINT entity_name')
     def constraint_entity_name(self, p):

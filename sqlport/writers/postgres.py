@@ -233,7 +233,7 @@ class PostgresWriter(InformixWriter):
     def UniqueConstraint(self):
         if self.name:
             yield 'CONSTRAINT ', self.name, ' '
-        yield 'UNIQUE (', self.column, ')'
+        yield 'UNIQUE (', self.columns, ')'
 
     def OwnerDotName(self):
         #yield self.owner, '.', self.name

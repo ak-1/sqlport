@@ -335,9 +335,9 @@ class AddColumn(Node):
         self.column = column
 
 class UniqueConstraint(Node):
-    def __init__(self, name, column):
+    def __init__(self, name, columns):
         self.name = name
-        self.column = column
+        self.columns = columns
 
 class CheckConstraint(Node):
     def __init__(self, name, expr):
