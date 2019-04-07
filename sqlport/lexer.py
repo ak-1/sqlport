@@ -165,8 +165,11 @@ class SqlLexer(Lexer):
         IN,
     }
     
+    @_(r'/\*(.|\n)+?\*/')
+    def ignore_multi_line_comment_1(self, t):
+        self.lineno += t.value.count('\n')
     @_(r'{(.|\n)+?}')
-    def ignore_multi_line_comment(self, t):
+    def ignore_multi_line_comment_2(self, t):
         self.lineno += t.value.count('\n')
     ignore_line_comment = r'--.*(?=\n)'
     ignore = ' \t'

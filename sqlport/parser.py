@@ -300,9 +300,9 @@ class SqlParser(Parser):
     @_('WHILE expr proc_list END WHILE')
     def proc_expr(self, p):
         return While(p.expr, p.proc_list)
-    @_('BEGIN proc_list END')
+    @_('BEGIN declare_list proc_list END')
     def proc_expr(self, p):
-        return BeginEnd(p.proc_list)
+        return BeginEnd(p.declare_list, p.proc_list)
     @_('ON EXCEPTION on_exception_in proc_list END EXCEPTION with_resume')
     def proc_expr(self, p):
         return OnException(p.on_exception_in, p.proc_list, p.with_resume)
@@ -353,13 +353,20 @@ class SqlParser(Parser):
     def if_else(self, p):
         pass
 
-    @_('DOCUMENT STRING')
+    @_('DOCUMENT string_list')
     def document(self, p):
-        return p.STRING
+        return p.string_list
     @_('empty')
     def document(self, p):
         return None
-    
+
+    @_('STRING')
+    def string_list(self, p):
+        return NodeList(p.STRING)
+    @_('string_list "," STRING')
+    def string_list(self, p):
+        return p.string_list.push(p.STRING)
+
     @_('execute_procedure entity_ref "(" args ")" call_returning')
     def call_stmt(self, p):
         return Call(p.entity_ref, p.args, True, returning=p.call_returning)
@@ -471,21 +478,32 @@ class SqlParser(Parser):
     def truncate_stmt(self, p):
         return Truncate(p.entity_ref)
 
-    @_('UPDATE STATISTICS statistics_mode for_table')
+    @_('UPDATE STATISTICS statistics_mode for_type_name opt_arg_type_list')
     def update_statistics_stmt(self, p):
-        return UpdateStatistics(p.statistics_mode, p.for_table)
+        return UpdateStatistics(p.statistics_mode, p.for_type_name[0], p.for_type_name[1])
     
     @_('LOW', 'MEDIUM', 'HIGH', 'empty')
     def statistics_mode(self, p):
         return p[0]
 
-    @_('FOR TABLE entity_ref')
-    def for_table(self, p):
-        return p.entity_ref
-    @_('FOR TABLE', 'empty')
-    def for_table(self, p):
+    @_('FOR for_type opt_entity_ref')
+    def for_type_name(self, p):
+        return p.for_type, p.opt_entity_ref
+    @_('empty')
+    def for_type_name(self, p):
+        return None, None
+
+    @_('TABLE', 'PROCEDURE', 'FUNCTION')
+    def for_type(self, p):
+        return p[0]
+
+    @_('entity_ref')
+    def opt_entity_ref(self, p):
+        return p[0]
+    @_('empty')
+    def opt_entity_ref(self, p):
         return None
-    
+
     @_('GRANT permission grant_on TO grant_role grant_as')
     def grant_stmt(self, p):
         return Grant(p.permission, p.grant_on, p.grant_role, p.grant_as)
@@ -545,10 +563,17 @@ class SqlParser(Parser):
     def create_aggregate(self, p):
         return CreateAggregate(p.entity_name, p.name0, p.name1)
 
-    @_('DROP kind if_exists name')
+    @_('DROP kind if_exists entity_name opt_arg_type_list')
     def drop_stmt(self, p):
-        return Drop(p[1], p.name, p.if_exists)
+        return Drop(p[1], p.entity_name, p.if_exists, p.opt_arg_type_list)
 
+    @_('"(" arg_type_list ")"')
+    def opt_arg_type_list(self, p):
+        return p.arg_type_list
+    @_('empty')
+    def opt_arg_type_list(self, p):
+        return None
+    
     @_('TABLE', 'VIEW', 'SYNONYM', 'INDEX', 'PROCEDURE', 'FUNCTION', 'CONSTRAINT', 'SEQUENCE', 'TRIGGER')
     def kind(self, p):
         return p[0]
@@ -711,9 +736,21 @@ class SqlParser(Parser):
     def create_table_item(self, p):
         return p.unique_constraint
 
-    @_('name type_expr default not_null primary_key in_dbspace disabled')
+    @_('name type_expr column_default_constraints in_dbspace disabled')
     def create_table_column(self, p):
-        return CreateTableColumn(p.name, p.type_expr, p.default, p.not_null, p.primary_key)
+        default, column_constraints = p.column_default_constraints
+        not_null, primary_key = column_constraints
+        return CreateTableColumn(p.name, p.type_expr, default, not_null, primary_key)
+
+    @_('default column_constraints',
+       'column_constraints default')
+    def column_default_constraints(self, p):
+        return p.default, p.column_constraints
+
+    @_('not_null primary_key',
+       'primary_key not_null')
+    def column_constraints(self, p):
+        return p.not_null, p.primary_key
 
     @_('DISABLED', 'empty')
     def disabled(self, p):
@@ -808,20 +845,24 @@ class SqlParser(Parser):
     @_('entity_ref_as')
     def from_expr(self, p):
         return p.entity_ref_as
-    @_('sub_select as_name "(" name_list ")"')
+    @_('sub_select as_name insert_stmt_name_list')
     def from_expr(self, p):
-        return SubSelectAsSelectTable(p.sub_select, p.as_name, p.name_list)
+        return SubSelectAsSelectTable(p.sub_select, p.as_name, p.insert_stmt_name_list)
 
     @_('INNER JOIN',
-       'LEFT JOIN', 'LEFT OUTER JOIN',
-       'RIGHT JOIN', 'RIGHT OUTER JOIN',
-       'FULL JOIN', 'FULL OUTER JOIN',
+       'LEFT outer JOIN',
+       'RIGHT outer JOIN',
+       'FULL outer JOIN',
        'CROSS JOIN')
     def join(self, p):
         return p[0]
     @_('JOIN')
     def join(self, p):
         return 'INNER'
+
+    @_('OUTER', 'empty')
+    def outer(self, p):
+        pass
 
     @_('ON expr')
     def on_expr(self, p):
@@ -1038,7 +1079,8 @@ class SqlParser(Parser):
     @_('expr CAST type_expr')
     def expr(self, p):
         return Cast(p.expr, p.type_expr)
-    @_('EXISTS "(" select ")"')
+    @_('EXISTS "(" select ")"',
+       'EXISTS "(" "(" select ")" ")"')
     def expr(self, p):
         return Exists(p.select)
     @_('expr IN "(" expr_list ")"',
@@ -1282,7 +1324,7 @@ class SqlParser(Parser):
 
     @_('NAME', 'ALL', 'KEY', 'UPDATE', 'time_unit_name', 'MATCHED', 'END', 'DEFAULT',
        'LANGUAGE', 'ROLE', 'VARIANT', 'INCREMENT', 'CONSTRAINT', 'USAGE', #'GROUP',
-       'COUNT',
+       'COUNT', 'ENABLED', 'FIRST', 'DOCUMENT', 'SYSTEM',
        'VALUE', 'datatype', 'TRIM', 'BEGIN', 'GLOBAL', 'STEP', 'SHARE', '*', 'NEW', 'OLD')
     def name(self, p):
         return Name(p[0])

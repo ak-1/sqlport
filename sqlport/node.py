@@ -274,9 +274,10 @@ class Merge(Node):
         self.case_list = case_list
 
 class UpdateStatistics(Node):
-    def __init__(self, mode, table):
+    def __init__(self, mode, type, name):
         self.mode = mode
-        self.table = table
+        self.type = type
+        self.name = name
 
 class Join(Node):
     def __init__(self, join, left, right, on):
@@ -411,10 +412,11 @@ class TimeUnit(Node):
         self.size = size
 
 class Drop(Node):
-    def __init__(self, kind, name, if_exists):
+    def __init__(self, kind, name, if_exists, arg_types):
         self.kind = kind
         self.name = name
         self.if_exists = if_exists
+        self.arg_types = arg_types
 
 class LockTable(Node):
     def __init__(self, table, mode):
@@ -627,7 +629,8 @@ class While(Node):
         self.statements = statements
         
 class BeginEnd(Node):
-    def __init__(self, statements):
+    def __init__(self, declarations, statements):
+        self.declarations = declarations
         self.statements = statements
         
 class Exit(Node):

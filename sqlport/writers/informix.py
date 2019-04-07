@@ -140,8 +140,8 @@ class InformixWriter:
         yield "UPDATE STATISTICS"
         if self.mode:
             yield " ", self.mode
-        if self.table:
-            yield " FOR TABLE ", self.table
+        if self.name:
+            yield " FOR ", self.type, " ", self.name
 
     def Join(self):
         br = Br(self)
@@ -282,6 +282,8 @@ class InformixWriter:
         if self.if_exists:
             yield ' IF EXISTS'
         yield ' ', self.name
+        if self.arg_types:
+            yield "(", self.arg_types, ")"
         
     def LockTable(self):
         yield 'LOCK TABLE ', self.table, ' IN ', self.mode, ' MODE'
@@ -457,8 +459,11 @@ class InformixWriter:
         yield 'WHILE ', self.expr, '\n', Indented(self.statements), 'END WHILE\n'
         
     def BeginEnd(self):
-        yield "BEGIN\n", self.statements, "END\n"
-        
+        yield "BEGIN\n", Indent
+        if len(self.declarations):
+            yield self.declarations
+        yield self.statements, Dedent, "END\n"
+
     def Exit(self):
         yield "EXIT ", self.loop
         

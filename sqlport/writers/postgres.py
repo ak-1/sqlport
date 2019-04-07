@@ -349,6 +349,8 @@ class PostgresWriter(InformixWriter):
         if self.if_exists:
             yield ' IF EXISTS'
         yield ' ', self.name
+        if self.arg_types:
+            yield "(", self.arg_types, ")"
 
     def CreateProcedure(self):
         fix_declarations(self)
@@ -452,11 +454,12 @@ class PostgresWriter(InformixWriter):
         yield 'NULL'
 
     def UpdateStatistics(self):
-        yield "ANALYZE"
-        # if self.mode:
-        #     yield " ", self.mode
-        if self.table:
-            yield " ", self.table
+        if self.type == 'TABLE':
+            yield "ANALYZE"
+            # if self.mode:
+            #     yield " ", self.mode
+            if self.name:
+                yield " ", self.name
 
     def String(self):
         yield convert_string(self.value)
@@ -584,5 +587,11 @@ class PostgresWriter(InformixWriter):
     def Continue(self):
         yield "CONTINUE"
         #yield ' ', self.loop
+
+    def BeginEnd(self):
+        if len(self.declarations):
+            yield "DECLARE\n", Indented(self.declarations)
+        yield "BEGIN\n", Indented(self.statements), "END\n"
+
 
 writer = PostgresWriter
