@@ -1266,7 +1266,7 @@ class SqlParser(Parser):
 
     @_('row_type')
     def row_list(self, p):
-        return NodeList(p.row_type)
+        return CommaList(p.row_type)
     @_('row_list "," row_type')
     def row_list(self, p):
         return p.row_list.append(p.row_type)
@@ -1340,8 +1340,6 @@ class SqlParser(Parser):
         return super().parse(tokens)
 
     def error(self, t):
-        if self.onerror:
-            self.onerror(self, t)
         txt = self.input_text
         stderr.write("Syntax Error [state {}] {}\n".format(self.state, t))
         if t != None:
@@ -1350,6 +1348,8 @@ class SqlParser(Parser):
             stderr.write(colored(txt[line_start:t.index], 'yellow'))
             stderr.write(colored(txt[t.index:t.index+len(t.value)], 'red'))
             stderr.write(colored(txt[t.index+len(t.value):line_end]+'\n', 'yellow'))
+        if self.onerror:
+            self.onerror(self, t)
         self.errcount += 1
         if self.errcount >= self.maxerrors:
             raise TooManyErrors()

@@ -1,5 +1,5 @@
 
-from . support import onerror, tokens, port
+from . support import onerror, tokens, port, pgproc, ifxproc
 
 def test_first():
     i = "select first 1 a from b"
@@ -48,22 +48,6 @@ def test_create_procedure():
     $$ LANGUAGE plpgsql;
     """
     assert tokens(port(i)) == tokens(p)
-
-def ifxproc(text):
-    return """
-    create procedure test()
-    {}
-    end procedure
-    """.format(text)
-
-def pgproc(text):
-    return """
-    CREATE OR REPLACE FUNCTION test() RETURNS VOID AS $$
-    BEGIN
-    {}
-    END;
-    $$ LANGUAGE plpgsql;
-    """.format(text)
 
 def test_create_procedure_if():
     i = ifxproc("""
