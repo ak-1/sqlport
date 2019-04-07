@@ -736,9 +736,21 @@ class SqlParser(Parser):
     def create_table_item(self, p):
         return p.unique_constraint
 
-    @_('name type_expr default not_null primary_key in_dbspace disabled')
+    @_('name type_expr column_default_constraints in_dbspace disabled')
     def create_table_column(self, p):
-        return CreateTableColumn(p.name, p.type_expr, p.default, p.not_null, p.primary_key)
+        default, column_constraints = p.column_default_constraints
+        not_null, primary_key = column_constraints
+        return CreateTableColumn(p.name, p.type_expr, default, not_null, primary_key)
+
+    @_('default column_constraints',
+       'column_constraints default')
+    def column_default_constraints(self, p):
+        return p.default, p.column_constraints
+
+    @_('not_null primary_key',
+       'primary_key not_null')
+    def column_constraints(self, p):
+        return p.not_null, p.primary_key
 
     @_('DISABLED', 'empty')
     def disabled(self, p):
