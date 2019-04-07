@@ -300,9 +300,9 @@ class SqlParser(Parser):
     @_('WHILE expr proc_list END WHILE')
     def proc_expr(self, p):
         return While(p.expr, p.proc_list)
-    @_('BEGIN proc_list END')
+    @_('BEGIN declare_list proc_list END')
     def proc_expr(self, p):
-        return BeginEnd(p.proc_list)
+        return BeginEnd(p.declare_list, p.proc_list)
     @_('ON EXCEPTION on_exception_in proc_list END EXCEPTION with_resume')
     def proc_expr(self, p):
         return OnException(p.on_exception_in, p.proc_list, p.with_resume)

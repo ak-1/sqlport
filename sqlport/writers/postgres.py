@@ -588,4 +588,10 @@ class PostgresWriter(InformixWriter):
         yield "CONTINUE"
         #yield ' ', self.loop
 
+    def BeginEnd(self):
+        if len(self.declarations):
+            yield "DECLARE\n", Indented(self.declarations)
+        yield "BEGIN\n", Indented(self.statements), "END\n"
+
+
 writer = PostgresWriter

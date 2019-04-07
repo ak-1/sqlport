@@ -459,8 +459,11 @@ class InformixWriter:
         yield 'WHILE ', self.expr, '\n', Indented(self.statements), 'END WHILE\n'
         
     def BeginEnd(self):
-        yield "BEGIN\n", self.statements, "END\n"
-        
+        yield "BEGIN\n", Indent
+        if len(self.declarations):
+            yield self.declarations
+        yield self.statements, Dedent, "END\n"
+
     def Exit(self):
         yield "EXIT ", self.loop
         

@@ -629,7 +629,8 @@ class While(Node):
         self.statements = statements
         
 class BeginEnd(Node):
-    def __init__(self, statements):
+    def __init__(self, declarations, statements):
+        self.declarations = declarations
         self.statements = statements
         
 class Exit(Node):
