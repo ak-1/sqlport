@@ -478,7 +478,7 @@ class SqlParser(Parser):
     def truncate_stmt(self, p):
         return Truncate(p.entity_ref)
 
-    @_('UPDATE STATISTICS statistics_mode for_type_name')
+    @_('UPDATE STATISTICS statistics_mode for_type_name opt_arg_type_list')
     def update_statistics_stmt(self, p):
         return UpdateStatistics(p.statistics_mode, p.for_type_name[0], p.for_type_name[1])
     
