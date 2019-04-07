@@ -845,20 +845,24 @@ class SqlParser(Parser):
     @_('entity_ref_as')
     def from_expr(self, p):
         return p.entity_ref_as
-    @_('sub_select as_name "(" name_list ")"')
+    @_('sub_select as_name insert_stmt_name_list')
     def from_expr(self, p):
-        return SubSelectAsSelectTable(p.sub_select, p.as_name, p.name_list)
+        return SubSelectAsSelectTable(p.sub_select, p.as_name, p.insert_stmt_name_list)
 
     @_('INNER JOIN',
-       'LEFT JOIN', 'LEFT OUTER JOIN',
-       'RIGHT JOIN', 'RIGHT OUTER JOIN',
-       'FULL JOIN', 'FULL OUTER JOIN',
+       'LEFT outer JOIN',
+       'RIGHT outer JOIN',
+       'FULL outer JOIN',
        'CROSS JOIN')
     def join(self, p):
         return p[0]
     @_('JOIN')
     def join(self, p):
         return 'INNER'
+
+    @_('OUTER', 'empty')
+    def outer(self, p):
+        pass
 
     @_('ON expr')
     def on_expr(self, p):
