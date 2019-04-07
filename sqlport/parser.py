@@ -1324,7 +1324,7 @@ class SqlParser(Parser):
 
     @_('NAME', 'ALL', 'KEY', 'UPDATE', 'time_unit_name', 'MATCHED', 'END', 'DEFAULT',
        'LANGUAGE', 'ROLE', 'VARIANT', 'INCREMENT', 'CONSTRAINT', 'USAGE', #'GROUP',
-       'COUNT',
+       'COUNT', 'ENABLED', 'FIRST', 'DOCUMENT', 'SYSTEM',
        'VALUE', 'datatype', 'TRIM', 'BEGIN', 'GLOBAL', 'STEP', 'SHARE', '*', 'NEW', 'OLD')
     def name(self, p):
         return Name(p[0])
