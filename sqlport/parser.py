@@ -353,13 +353,20 @@ class SqlParser(Parser):
     def if_else(self, p):
         pass
 
-    @_('DOCUMENT STRING')
+    @_('DOCUMENT string_list')
     def document(self, p):
-        return p.STRING
+        return p.string_list
     @_('empty')
     def document(self, p):
         return None
-    
+
+    @_('STRING')
+    def string_list(self, p):
+        return NodeList(p.STRING)
+    @_('string_list "," STRING')
+    def string_list(self, p):
+        return p.string_list.push(p.STRING)
+
     @_('execute_procedure entity_ref "(" args ")" call_returning')
     def call_stmt(self, p):
         return Call(p.entity_ref, p.args, True, returning=p.call_returning)
