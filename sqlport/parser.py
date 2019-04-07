@@ -471,21 +471,32 @@ class SqlParser(Parser):
     def truncate_stmt(self, p):
         return Truncate(p.entity_ref)
 
-    @_('UPDATE STATISTICS statistics_mode for_table')
+    @_('UPDATE STATISTICS statistics_mode for_type_name')
     def update_statistics_stmt(self, p):
-        return UpdateStatistics(p.statistics_mode, p.for_table)
+        return UpdateStatistics(p.statistics_mode, p.for_type_name[0], p.for_type_name[1])
     
     @_('LOW', 'MEDIUM', 'HIGH', 'empty')
     def statistics_mode(self, p):
         return p[0]
 
-    @_('FOR TABLE entity_ref')
-    def for_table(self, p):
-        return p.entity_ref
-    @_('FOR TABLE', 'empty')
-    def for_table(self, p):
+    @_('FOR for_type opt_entity_ref')
+    def for_type_name(self, p):
+        return p.for_type, p.opt_entity_ref
+    @_('empty')
+    def for_type_name(self, p):
+        return None, None
+
+    @_('TABLE', 'PROCEDURE', 'FUNCTION')
+    def for_type(self, p):
+        return p[0]
+
+    @_('entity_ref')
+    def opt_entity_ref(self, p):
+        return p[0]
+    @_('empty')
+    def opt_entity_ref(self, p):
         return None
-    
+
     @_('GRANT permission grant_on TO grant_role grant_as')
     def grant_stmt(self, p):
         return Grant(p.permission, p.grant_on, p.grant_role, p.grant_as)

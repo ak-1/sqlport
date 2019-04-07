@@ -452,11 +452,12 @@ class PostgresWriter(InformixWriter):
         yield 'NULL'
 
     def UpdateStatistics(self):
-        yield "ANALYZE"
-        # if self.mode:
-        #     yield " ", self.mode
-        if self.table:
-            yield " ", self.table
+        if self.type == 'TABLE':
+            yield "ANALYZE"
+            # if self.mode:
+            #     yield " ", self.mode
+            if self.name:
+                yield " ", self.name
 
     def String(self):
         yield convert_string(self.value)

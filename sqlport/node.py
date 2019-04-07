@@ -274,9 +274,10 @@ class Merge(Node):
         self.case_list = case_list
 
 class UpdateStatistics(Node):
-    def __init__(self, mode, table):
+    def __init__(self, mode, type, name):
         self.mode = mode
-        self.table = table
+        self.type = type
+        self.name = name
 
 class Join(Node):
     def __init__(self, join, left, right, on):

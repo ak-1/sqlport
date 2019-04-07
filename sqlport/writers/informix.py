@@ -140,8 +140,8 @@ class InformixWriter:
         yield "UPDATE STATISTICS"
         if self.mode:
             yield " ", self.mode
-        if self.table:
-            yield " FOR TABLE ", self.table
+        if self.name:
+            yield " FOR ", self.type, " ", self.name
 
     def Join(self):
         br = Br(self)
