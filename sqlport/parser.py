@@ -556,10 +556,17 @@ class SqlParser(Parser):
     def create_aggregate(self, p):
         return CreateAggregate(p.entity_name, p.name0, p.name1)
 
-    @_('DROP kind if_exists name')
+    @_('DROP kind if_exists entity_name opt_arg_type_list')
     def drop_stmt(self, p):
-        return Drop(p[1], p.name, p.if_exists)
+        return Drop(p[1], p.entity_name, p.if_exists, p.opt_arg_type_list)
 
+    @_('"(" arg_type_list ")"')
+    def opt_arg_type_list(self, p):
+        return p.arg_type_list
+    @_('empty')
+    def opt_arg_type_list(self, p):
+        return None
+    
     @_('TABLE', 'VIEW', 'SYNONYM', 'INDEX', 'PROCEDURE', 'FUNCTION', 'CONSTRAINT', 'SEQUENCE', 'TRIGGER')
     def kind(self, p):
         return p[0]

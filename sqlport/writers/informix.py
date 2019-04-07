@@ -282,6 +282,8 @@ class InformixWriter:
         if self.if_exists:
             yield ' IF EXISTS'
         yield ' ', self.name
+        if self.arg_types:
+            yield "(", self.arg_types, ")"
         
     def LockTable(self):
         yield 'LOCK TABLE ', self.table, ' IN ', self.mode, ' MODE'

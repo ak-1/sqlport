@@ -412,10 +412,11 @@ class TimeUnit(Node):
         self.size = size
 
 class Drop(Node):
-    def __init__(self, kind, name, if_exists):
+    def __init__(self, kind, name, if_exists, arg_types):
         self.kind = kind
         self.name = name
         self.if_exists = if_exists
+        self.arg_types = arg_types
 
 class LockTable(Node):
     def __init__(self, table, mode):

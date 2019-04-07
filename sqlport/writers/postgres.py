@@ -349,6 +349,8 @@ class PostgresWriter(InformixWriter):
         if self.if_exists:
             yield ' IF EXISTS'
         yield ' ', self.name
+        if self.arg_types:
+            yield "(", self.arg_types, ")"
 
     def CreateProcedure(self):
         fix_declarations(self)
