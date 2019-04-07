@@ -1075,7 +1075,8 @@ class SqlParser(Parser):
     @_('expr CAST type_expr')
     def expr(self, p):
         return Cast(p.expr, p.type_expr)
-    @_('EXISTS "(" select ")"')
+    @_('EXISTS "(" select ")"',
+       'EXISTS "(" "(" select ")" ")"')
     def expr(self, p):
         return Exists(p.select)
     @_('expr IN "(" expr_list ")"',
