@@ -379,6 +379,53 @@ def test_literal():
     """
     assert tokens(port(i)) == tokens(p)
 
+def test_literal_interval():
+    i = """
+    select
+    interval (1) year to year,
+    interval (2) month to month,
+    interval (1-2) year to month,
+    interval (1 02:03:04.5) day to fraction,
+    interval (1 02:03:04) day to second,
+    interval (1 02:03) day to minute,
+    interval (1 02) day to hour,
+    interval (1) day to day,
+    interval (02:03:04.5) hour to fraction,
+    interval (02:03:04) hour to second,
+    interval (02:03) hour to minute,
+    interval (02) hour to hour,
+    interval (03:04.5) minute to fraction,
+    interval (03:04) minute to second,
+    interval (03) minute to minute,
+    interval (04.5) second to fraction,
+    interval (04) second to second,
+    interval (5) fraction to fraction
+    from x
+    """
+    p = """
+    select
+    interval '1 year',
+    interval '2 months',
+    interval '1 year 2 months',
+    interval '1 day 2 hours 3 minutes 4 seconds NOT_SUPPORTED: 5 fractions',
+    interval '1 day 2 hours 3 minutes 4 seconds',
+    interval '1 day 2 hours 3 minutes',
+    interval '1 day 2 hours',
+    interval '1 day',
+    interval '2 hours 3 minutes 4 seconds NOT_SUPPORTED: 5 fractions',
+    interval '2 hours 3 minutes 4 seconds',
+    interval '2 hours 3 minutes',
+    interval '2 hours',
+    interval '3 minutes 4 seconds NOT_SUPPORTED: 5 fractions',
+    interval '3 minutes 4 seconds',
+    interval '3 minutes',
+    interval '4 seconds NOT_SUPPORTED: 5 fractions',
+    interval '4 seconds',
+    interval 'NOT_SUPPORTED: 5 fractions'
+    from x;
+    """
+    assert tokens(port(i)) == tokens(p)
+
 # def test_type_expr():
 def test_type_expr():
     i = """

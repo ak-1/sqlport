@@ -479,16 +479,22 @@ class PostgresWriter(InformixWriter):
         yield NotSupported("MULTISET")
 
     def Interval(self):
-        yield 'INTERVAL'
-        # TODO these do not work for some reason: but maybe we do not need those?
-        # a = self.a.writeout()
-        # b = self.b.writeout()
-        # if a:
-        #     yield ' ', a
-        #     if b != a:
-        #         yield ' TO ', b
-        #if self.value:
-        # yield (', self.value, ') # TODO check if required
+        values = [ int(x) for x in re.split(r"\D+", self.value) ]
+        units = ('YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE', 'SECOND', 'FRACTION')
+        parts = []
+        i = 0
+        ixa = units.index(self.a.writeout())
+        while i < len(values) and ixa < len(units):
+            value = values[i]
+            unit = units[ixa].lower()
+            if unit == 'fraction':
+                parts.append(NotSupported().writeout())
+            if value not in (1,-1):
+                unit += 's'
+            parts.append('{} {}'.format(value, unit))
+            i += 1
+            ixa += 1
+        yield "INTERVAL '{}'".format(' '.join(parts))
 
     def SetLockMode(self):
         # yield "SET LOCK MODE TO "
