@@ -1,5 +1,5 @@
 
-from . support import onerror, tokens, port
+from . support import onerror, tokens, port, pgproc, ifxproc
 
 def test_toplevel_list():
     i = """
@@ -208,16 +208,62 @@ def test_proc_stmt_return():
 
 # def test_proc_expr():
 # def test_let_list():
+
 # def test_let_expr():
 # def test_on_exception_in():
 # def test_with_resume():
 # def test_if_list():
 # def test_if_else():
+def test_if():
+    i = ifxproc("""
+    if a=1 then
+    call x();
+    elif a=2 then
+    call y();
+    else
+    call z();
+    end if
+    """)
+    p = pgproc("""
+    if a=1 then
+    select x();
+    elsif a=2 then
+    select y();
+    else
+    select z();
+    end if;
+    """)
+    assert tokens(port(i)) == tokens(p)
+
 # def test_document():
 # def test_call_stmt():
+def test_call_stmt():
+    i = """
+    call x();
+    execute procedure y(1);
+    execute procedure z(1,2);
+    """
+    p = """
+    select x();
+    select y(1);
+    select z(1,2);
+    """
+    assert tokens(port(i)) == tokens(p)
+
 # def test_args():
 # def test_create_trigger():
 # def test_create_view():
+def test_create_view():
+    i = """
+    create view x (a, b) as
+    select c, d from y
+    """
+    p = """
+    CREATE OR REPLACE VIEW x (a, b) as
+    select c, d from y;
+    """
+    assert tokens(port(i)) == tokens(p)
+
 # def test_set_lock_mode():
 # def test_alter_table_stmt():
 # def test_merge_stmt():
@@ -310,8 +356,139 @@ def test_proc_stmt_return():
 # def test_case_when_list():
 # def test_case_when():
 # def test_case_else():
+def test_case():
+    i = """
+    select case when a=1 then 1 when a=2 then 2 else 3 end from x;
+    """
+    p = """
+    select case when a=1 then 1 when a=2 then 2 else 3 end from x;
+    """
+    assert tokens(port(i)) == tokens(p)
+
 # def test_literal():
+def test_literal():
+    i = """
+    select 1, -1, 1.12, -1.12, "ab""cd", 'ab''cd',
+    today, current
+    from x
+    """
+    p = """
+    select 1, -1, 1.12, -1.12, 'ab"cd', 'ab''cd',
+    current_date, current_timestamp
+    from x;
+    """
+    assert tokens(port(i)) == tokens(p)
+
+def test_literal_interval():
+    i = """
+    select
+    interval (1) year to year,
+    interval (2) month to month,
+    interval (1-2) year to month,
+    interval (1 02:03:04.5) day to fraction,
+    interval (1 02:03:04) day to second,
+    interval (1 02:03) day to minute,
+    interval (1 02) day to hour,
+    interval (1) day to day,
+    interval (02:03:04.5) hour to fraction,
+    interval (02:03:04) hour to second,
+    interval (02:03) hour to minute,
+    interval (02) hour to hour,
+    interval (03:04.5) minute to fraction,
+    interval (03:04) minute to second,
+    interval (03) minute to minute,
+    interval (04.5) second to fraction,
+    interval (04) second to second,
+    interval (5) fraction to fraction
+    from x
+    """
+    p = """
+    select
+    interval '1 year',
+    interval '2 months',
+    interval '1 year 2 months',
+    interval '1 day 2 hours 3 minutes 4 seconds NOT_SUPPORTED: 5 fractions',
+    interval '1 day 2 hours 3 minutes 4 seconds',
+    interval '1 day 2 hours 3 minutes',
+    interval '1 day 2 hours',
+    interval '1 day',
+    interval '2 hours 3 minutes 4 seconds NOT_SUPPORTED: 5 fractions',
+    interval '2 hours 3 minutes 4 seconds',
+    interval '2 hours 3 minutes',
+    interval '2 hours',
+    interval '3 minutes 4 seconds NOT_SUPPORTED: 5 fractions',
+    interval '3 minutes 4 seconds',
+    interval '3 minutes',
+    interval '4 seconds NOT_SUPPORTED: 5 fractions',
+    interval '4 seconds',
+    interval 'NOT_SUPPORTED: 5 fractions'
+    from x;
+    """
+    assert tokens(port(i)) == tokens(p)
+
 # def test_type_expr():
+def test_type_expr():
+    i = """
+    create procedure test()
+    define r row(int, decimal(20,10));
+    create table x (
+    c2 set(int not null),
+    c4 set(int),
+    c5 list(int),
+    c6 datetime year to second default current year to second,
+    c7 interval hour to minute,
+    c8 int,
+    c9 integer default 1 not null,
+    c10 decimal(20),
+    c11 decimal(20,10),
+    c12 char(1),
+    c13 varchar(100,100) not null,
+    c14 varchar(100) default "",
+    c15 text,
+    c16 byte,
+    c17 blob in adbs,
+    c18 boolean,
+    c19 date,
+    c20 date default today,
+    c21 int8,
+    c22 smallint,
+    c23 lvarchar(2048)
+    );
+    end procedure
+    """
+    p = """
+    CREATE OR REPLACE FUNCTION test() RETURNS VOID AS $$
+    DECLARE
+    r row(int, decimal(20,10));
+    BEGIN
+    create table x (
+    c2 set(int not null),
+    c4 set(int),
+    c5 list(int),
+    c6 timestamp default current_timestamp,
+    c7 interval,
+    c8 int,
+    c9 integer default 1 not null,
+    c10 decimal(30,10),
+    c11 decimal(20,10),
+    c12 char(1),
+    c13 varchar(100) not null,
+    c14 varchar(100) default '',
+    c15 text,
+    c16 bytea,
+    c17 blob,
+    c18 boolean,
+    c19 date,
+    c20 date default current_date,
+    c21 int8,
+    c22 smallint,
+    c23 varchar(2048)
+    );
+    END;
+    $$ LANGUAGE plpgsql;
+    """
+    assert tokens(port(i)) == tokens(p)
+
 # def test_simple_type_expr():
 # def test_datatype():
 # def test_owner():

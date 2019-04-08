@@ -204,12 +204,12 @@ class SqlLexer(Lexer):
         return super().tokenize(text)
 
     def error(self, t):
-        if self.onerror:
-            self.onerror(self, t)
         if len(t.value) > 10:
             t.value = t.value[:10] + '...'
         stderr.write("LexError: {}\n".format(t))
         self.index += 1
+        if self.onerror:
+            self.onerror(self, t)
         self.errcount += 1
         if self.errcount >= self.maxerrors:
             raise TooManyErrors()

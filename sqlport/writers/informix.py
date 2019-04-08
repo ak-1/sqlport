@@ -542,7 +542,9 @@ class InformixWriter:
         yield ' MATCHES ', self.pattern
 
     def NotSupported(self):
-        yield "NOT_SUPPORTED: ", self.args
+        yield "NOT_SUPPORTED:"
+        if self.args:
+            yield " ", self.args
 
     def Comment(self):
         for line in self.text.split('\n'):
