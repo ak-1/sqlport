@@ -106,7 +106,6 @@ class SqlLexer(Lexer):
         CONCAT,
         DATETIME,
         INTERVAL,
-        DECIMAL,
         SET,
         DEFAULT,
         DROP,
@@ -185,7 +184,6 @@ class SqlLexer(Lexer):
             t.value = t.type = t.value.upper()
         return t
 
-    DECIMAL = r'[0-9]+\.[0-9]*'
     CONCAT = r'\|\|'
     EQ = r'=='
     NE1 = r'!='
