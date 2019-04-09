@@ -524,10 +524,10 @@ class InformixWriter:
             yield ' AS ', self._as
             
     def CreateAggregate(self):
-        yield 'CREATE AGGREGATE ', self.name
-        yield ' WITH ( ITER = ', self.iter
-        yield ', COMBINE = ', self.combine
-        yield ')'
+        br = Br(self)
+        yield 'CREATE AGGREGATE ', self.name, ' WITH (', br, Indent,
+        yield join_list((',', br), [ (a, ' = ', f) for a, f in self.arglist ])
+        yield Dedent, br, ')'
 
     def FunctionSignature(self):
         yield self.type, ' ', self.name, '(', join_list(', ', self.arg_types), ')'

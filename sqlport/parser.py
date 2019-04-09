@@ -558,10 +558,25 @@ class SqlParser(Parser):
 
     @_("""
     CREATE AGGREGATE entity_name
-    WITH "(" ITER "=" name "," COMBINE "=" name ")"
+    WITH "(" aggregate_arg_list ")"
     """)
     def create_aggregate(self, p):
-        return CreateAggregate(p.entity_name, p.name0, p.name1)
+        return CreateAggregate(p.entity_name, p.aggregate_arg_list)
+
+    @_('aggregate_arg')
+    def aggregate_arg_list(self, p):
+        return CommaList(p.aggregate_arg)
+    @_('aggregate_arg_list "," aggregate_arg')
+    def aggregate_arg_list(self, p):
+        return p.aggregate_arg_list.append(p.aggregate_arg)
+
+    @_('aggregate_argname "=" entity_name')
+    def aggregate_arg(self, p):
+        return p.aggregate_argname, p.entity_name
+
+    @_('INIT', 'ITER', 'COMBINE', 'FINAL')
+    def aggregate_argname(self, p):
+        return p[0]
 
     @_('DROP kind if_exists entity_name opt_arg_type_list')
     def drop_stmt(self, p):
@@ -1206,9 +1221,9 @@ class SqlParser(Parser):
     @_('STRING')
     def literal(self, p):
         return String(p.STRING)
-    @_('DECIMAL')
+    @_('decimal')
     def literal(self, p):
-        return p.DECIMAL
+        return p.decimal
     @_('integer')
     def literal(self, p):
         return p.integer
@@ -1228,21 +1243,21 @@ class SqlParser(Parser):
     def literal(self, p):
         return Interval(p.interval_values, p.time_unit0, p.time_unit1)
 
-    @_('UINT ivsep UINT ivsep UINT ivsep UINT ivsep ivfinal')
+    @_('UINT ivsep UINT ivsep UINT ivsep UINT ivsep UINT')
     def interval_values(self, p):
-        return ''.join((p.UINT0, p.ivsep0, p.UINT1, p.ivsep1, p.UINT2, p.ivsep2, p.UINT3, p.ivsep3, p.ivfinal))
-    @_('UINT ivsep UINT ivsep UINT ivsep ivfinal')
+        return ''.join((p.UINT0, p.ivsep0, p.UINT1, p.ivsep1, p.UINT2, p.ivsep2, p.UINT3, p.ivsep3, p.UINT4))
+    @_('UINT ivsep UINT ivsep UINT ivsep UINT')
     def interval_values(self, p):
-        return ''.join((p.UINT0, p.ivsep0, p.UINT1, p.ivsep1, p.UINT2, p.ivsep2, p.ivfinal))
-    @_('UINT ivsep UINT ivsep ivfinal')
+        return ''.join((p.UINT0, p.ivsep0, p.UINT1, p.ivsep1, p.UINT2, p.ivsep2, p.UINT3))
+    @_('UINT ivsep UINT ivsep UINT')
     def interval_values(self, p):
-        return ''.join((p.UINT0, p.ivsep0, p.UINT1, p.ivsep1, p.ivfinal))
-    @_('UINT ivsep ivfinal')
+        return ''.join((p.UINT0, p.ivsep0, p.UINT1, p.ivsep1, p.UINT2))
+    @_('UINT ivsep UINT')
     def interval_values(self, p):
-        return ''.join((p.UINT, p.ivsep, p.ivfinal))
-    @_('ivfinal')
+        return ''.join((p.UINT0, p.ivsep, p.UINT1))
+    @_('UINT')
     def interval_values(self, p):
-        return p.ivfinal
+        return p.UINT
 
     @_('"-"', '":"', '"."')
     def ivsep(self, p):
@@ -1250,10 +1265,6 @@ class SqlParser(Parser):
     @_('empty')
     def ivsep(self, p):
         return ' '
-
-    @_('UINT', 'DECIMAL')
-    def ivfinal(self, p):
-        return p[0]
 
     @_('ROW "(" row_list ")"')
     def type_expr(self, p):
@@ -1321,12 +1332,20 @@ class SqlParser(Parser):
     def owner(self, p):
         return p.STRING
 
-    @_('UINT')
+    @_('sign UINT')
     def integer(self, p):
-        return p.UINT
-    @_('"-" UINT')
-    def integer(self, p):
-        return '-' + p.UINT
+        return p.sign + p.UINT
+
+    @_('sign UINT "." UINT')
+    def decimal(self, p):
+        return p.sign + p.UINT0 + '.' + p.UINT1
+
+    @_('"+"', '"-"')
+    def sign(self, p):
+        return p[0]
+    @_('empty')
+    def sign(self, p):
+        return ''
 
     @_('time_unit_name')
     def time_unit(self, p):
@@ -1341,7 +1360,7 @@ class SqlParser(Parser):
 
     @_('NAME', 'ALL', 'KEY', 'UPDATE', 'time_unit_name', 'MATCHED', 'END', 'DEFAULT',
        'LANGUAGE', 'ROLE', 'VARIANT', 'INCREMENT', 'CONSTRAINT', 'USAGE', #'GROUP',
-       'COUNT', 'ENABLED', 'FIRST', 'DOCUMENT', 'SYSTEM',
+       'COUNT', 'ENABLED', 'FIRST', 'DOCUMENT', 'SYSTEM', 'INIT', 'ITER', 'COMBINE', 'FINAL',
        'VALUE', 'datatype', 'TRIM', 'BEGIN', 'GLOBAL', 'STEP', 'SHARE', '*', 'NEW', 'OLD')
     def name(self, p):
         return Name(p[0])

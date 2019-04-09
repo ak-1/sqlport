@@ -599,5 +599,19 @@ class PostgresWriter(InformixWriter):
             yield "DECLARE\n", Indented(self.declarations)
         yield "BEGIN\n", Indented(self.statements), "END\n"
 
+    def CreateAggregate(self):
+        br = Br(self)
+        def _map(a,f):
+            if a == "INIT":
+                return "initial_condition = ", NotSupported(f)
+            if a == "ITER":
+                return "sfunc = ", f
+            if a == "COMBINE":
+                return None
+            if a == "FINAL":
+                return "ffunc = ", f 
+        yield 'CREATE AGGREGATE ', self.name, ' (', NotSupported('arg_data_type'), ') (', br, Indent,
+        yield join_list((',', br), [ _map(a, f) for a, f in self.arglist if _map(a, f) ])
+        yield Dedent, br, ')'
 
 writer = PostgresWriter

@@ -284,7 +284,25 @@ def test_create_view():
 # def test_revoke_stmt():
 # def test_grant_entity():
 # def test_arg_type_list():
-# def test_create_aggregate():
+
+def test_create_aggregate():
+    i = """
+    create aggregate test with (
+    INIT = init,
+    ITER = iter,
+    COMBINE = combine,
+    FINAL = final
+    )
+    """
+    p = """
+    create aggregate test (NOT_SUPPORTED: arg_data_type) (
+    initial_condition = NOT_SUPPORTED: init,
+    sfunc = iter,
+    ffunc = final
+    );
+    """
+    assert tokens(port(i)) == tokens(p)
+
 # def test_drop_stmt():
 # def test_kind():
 # def test_lock_table():
