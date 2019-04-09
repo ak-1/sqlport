@@ -683,10 +683,9 @@ class Revoke(Node):
         self._as = _as
         
 class CreateAggregate(Node):
-    def __init__(self, name, iter, combine):
+    def __init__(self, name, arglist):
         self.name = name
-        self.iter = iter
-        self.combine = combine
+        self.arglist = arglist
         
 class FunctionSignature(Node):
     def __init__(self, type, name, arg_types):

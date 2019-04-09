@@ -558,10 +558,25 @@ class SqlParser(Parser):
 
     @_("""
     CREATE AGGREGATE entity_name
-    WITH "(" ITER "=" name "," COMBINE "=" name ")"
+    WITH "(" aggregate_arg_list ")"
     """)
     def create_aggregate(self, p):
-        return CreateAggregate(p.entity_name, p.name0, p.name1)
+        return CreateAggregate(p.entity_name, p.aggregate_arg_list)
+
+    @_('aggregate_arg')
+    def aggregate_arg_list(self, p):
+        return CommaList(p.aggregate_arg)
+    @_('aggregate_arg_list "," aggregate_arg')
+    def aggregate_arg_list(self, p):
+        return p.aggregate_arg_list.append(p.aggregate_arg)
+
+    @_('aggregate_argname "=" entity_name')
+    def aggregate_arg(self, p):
+        return p.aggregate_argname, p.entity_name
+
+    @_('INIT', 'ITER', 'COMBINE', 'FINAL')
+    def aggregate_argname(self, p):
+        return p[0]
 
     @_('DROP kind if_exists entity_name opt_arg_type_list')
     def drop_stmt(self, p):
@@ -1345,7 +1360,7 @@ class SqlParser(Parser):
 
     @_('NAME', 'ALL', 'KEY', 'UPDATE', 'time_unit_name', 'MATCHED', 'END', 'DEFAULT',
        'LANGUAGE', 'ROLE', 'VARIANT', 'INCREMENT', 'CONSTRAINT', 'USAGE', #'GROUP',
-       'COUNT', 'ENABLED', 'FIRST', 'DOCUMENT', 'SYSTEM',
+       'COUNT', 'ENABLED', 'FIRST', 'DOCUMENT', 'SYSTEM', 'INIT', 'ITER', 'COMBINE', 'FINAL',
        'VALUE', 'datatype', 'TRIM', 'BEGIN', 'GLOBAL', 'STEP', 'SHARE', '*', 'NEW', 'OLD')
     def name(self, p):
         return Name(p[0])
