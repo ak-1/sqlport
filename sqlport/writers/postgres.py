@@ -313,10 +313,10 @@ class PostgresWriter(InformixWriter):
         yield self.text
         if self.neg:
             yield ' NOT'
-        if not isinstance(self.pattern, (str, String)):
-            yield ' MATCHES ', self.pattern, ' ', BlockComment(NotSupported("MATCHES variable"))
-        else:
+        if isinstance(self.pattern, (str, String)):
             yield ' SIMILAR TO ', map_matches(self.pattern.writeout())
+        else:
+            yield ' SIMILAR TO map_matches(', self.pattern, ')'
 
     def Slice(self):
         if hasattr(self, "parent") and isinstance(self.parent, CommaList) and isinstance(self.parent.parent, Let) and self.parent.parent_key == "names": 
