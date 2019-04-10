@@ -614,4 +614,7 @@ class PostgresWriter(InformixWriter):
         yield join_list((',', br), [ _map(a, f) for a, f in self.arglist if _map(a, f) ])
         yield Dedent, br, ')'
 
+    def UnlockTable(self):
+        yield Noop(), ' ', BlockComment(NotSupported('UNLOCK TABLE ', self.table)), ''
+
 writer = PostgresWriter
