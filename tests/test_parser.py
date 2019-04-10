@@ -210,7 +210,33 @@ def test_proc_stmt_return():
 # def test_let_list():
 
 # def test_let_expr():
-# def test_on_exception_in():
+def test_on_exception_in():
+    i = ifxproc("""
+    ON EXCEPTION IN (-206, -218)
+    let x = 0;
+    END EXCEPTION
+    let x = 1;
+    """)
+    p = pgproc("""
+    x := 1;
+    EXCEPTION
+    WHEN undefined_table OR NOT_SUPPORTED: -218 THEN
+    x := 0;
+    """)
+    assert tokens(port(i)) == tokens(p)
+    i = ifxproc("""
+    ON EXCEPTION IN (-206)
+    END EXCEPTION WITH RESUME
+    let x = 1;
+    """)
+    p = pgproc("""
+    x := 1;
+    EXCEPTION
+    WHEN undefined_table THEN
+    NOT_SUPPORTED: WITH RESUME
+    """)
+    assert tokens(port(i)) == tokens(p)
+
 # def test_with_resume():
 # def test_if_list():
 # def test_if_else():
