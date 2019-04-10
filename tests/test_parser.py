@@ -52,7 +52,7 @@ def test_with_variant():
     end function
     """
     p = """
-    CREATE OR REPLACE FUNCTION test() RETURNS INT AS $$
+    CREATE OR REPLACE FUNCTION test() RETURNS INT VOLATILE AS $$
     BEGIN
     END;
     $$ LANGUAGE plpgsql;
@@ -63,7 +63,7 @@ def test_with_variant():
     end function
     """
     p = """
-    CREATE OR REPLACE FUNCTION test() RETURNS INT AS $$
+    CREATE OR REPLACE FUNCTION test() RETURNS INT IMMUTABLE AS $$
     BEGIN
     END;
     $$ LANGUAGE plpgsql;
