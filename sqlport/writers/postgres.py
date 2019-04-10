@@ -240,10 +240,20 @@ class PostgresWriter(InformixWriter):
         yield self.name
 
     def Grant(self):
-        yield
-    
+        yield 'GRANT ', self.permission
+        if self.on:
+            yield ' ON ', self.on
+        yield ' TO ', self.to
+        if self._as:
+            yield BlockComment(NotSupported(' AS ', self._as))
+
     def Revoke(self):
-        yield
+        yield 'REVOKE ', self.permission
+        if self.on:
+            yield ' ON ', self.on
+        yield ' FROM ', self._from
+        if self._as:
+            yield BlockComment(NotSupported(' AS ', self._as))
 
     def Current(self):
         yield 'current_timestamp'
