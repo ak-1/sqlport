@@ -580,7 +580,7 @@ class PostgresWriter(InformixWriter):
             pass
 
     def System(self):
-        yield 'PERFORM system(', self.expr, ')'
+        yield 'PERFORM system_call(', self.expr, ')'
 
     def DefineGlobal(self):
         yield 'DEFINE GLOBAL ', self.name, ' ', self.type, ' DEFAULT ', self.default, ' ', Comment(NotSupported("DEFINE GLOBAL"))
