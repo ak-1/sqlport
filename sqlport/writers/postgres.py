@@ -440,7 +440,7 @@ class PostgresWriter(InformixWriter):
     def OnException(self):
         yield "EXCEPTION\n", Indent
         if self.codes:
-            codes = [ errorMap.get(code.writeout(), NotSupported(code.writeout())) for code in self.codes ]
+            codes = [ errorMap.get(code, NotSupported(code)) for code in self.codes ]
         else:
             yield NotSupported("EXCEPTION WITHOUT ANY ERROR CODES")
             codes = []
