@@ -9,7 +9,7 @@ with open('README.md', 'r') as fh:
 setup(
     name='sqlport',  
     license='BSD',
-    version='0.1',
+    version='0.2',
     packages=find_packages(),
     scripts=['bin/sqlport'] ,
     author='Andre Kuehne',
