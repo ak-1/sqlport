@@ -401,8 +401,6 @@ class InformixWriter:
             if not self.variant:
                 yield 'NOT '
             yield 'VARIANT)\n'
-        elif self.variant is False:
-            yield ' WITH (NOT VARIANT)\n'
         yield Indented(self.declarations)
         yield 'END ', self.type,
         if self.doc:

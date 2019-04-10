@@ -182,7 +182,7 @@ errorMap = {
 class PostgresWriter(InformixWriter):
     def Select(self):
         yield from fix_outer(self)
-        br = Br(self, 70)
+        br = Br(self)
         if self.into:
             yield 'CREATE TEMP TABLE ', self.into, ' AS', br
         yield "SELECT"
@@ -240,10 +240,20 @@ class PostgresWriter(InformixWriter):
         yield self.name
 
     def Grant(self):
-        yield
-    
+        yield 'GRANT ', self.permission
+        if self.on:
+            yield ' ON ', self.on
+        yield ' TO ', self.to
+        if self._as:
+            yield BlockComment(NotSupported(' AS ', self._as))
+
     def Revoke(self):
-        yield
+        yield 'REVOKE ', self.permission
+        if self.on:
+            yield ' ON ', self.on
+        yield ' FROM ', self._from
+        if self._as:
+            yield BlockComment(NotSupported(' AS ', self._as))
 
     def Current(self):
         yield 'current_timestamp'
@@ -303,10 +313,10 @@ class PostgresWriter(InformixWriter):
         yield self.text
         if self.neg:
             yield ' NOT'
-        if not isinstance(self.pattern, (str, String)):
-            yield ' MATCHES ', self.pattern, ' ', BlockComment(NotSupported("MATCHES variable"))
-        else:
+        if isinstance(self.pattern, (str, String)):
             yield ' SIMILAR TO ', map_matches(self.pattern.writeout())
+        else:
+            yield ' SIMILAR TO map_matches(', self.pattern, ')'
 
     def Slice(self):
         if hasattr(self, "parent") and isinstance(self.parent, CommaList) and isinstance(self.parent.parent, Let) and self.parent.parent_key == "names": 
@@ -371,13 +381,10 @@ class PostgresWriter(InformixWriter):
                 yield NotSupported("RETURNS with multiple values")
         else:
             yield ' RETURNS VOID'
-        # if self.variant != None:
-        #     yield ' WITH ('
-        #     if not self.variant:
-        #         yield 'NOT '
-        #     yield 'VARIANT)\n'
-        # elif self.variant is False:
-        #     yield ' WITH (NOT VARIANT)\n'
+        if self.variant == True:
+            yield ' VOLATILE'
+        if self.variant == False:
+            yield ' IMMUTABLE'
         yield " AS $$\n"
         if self.declarations:
             yield "DECLARE\n", Indented(self.declarations)
@@ -440,7 +447,7 @@ class PostgresWriter(InformixWriter):
     def OnException(self):
         yield "EXCEPTION\n", Indent
         if self.codes:
-            codes = [ errorMap.get(code.writeout(), NotSupported(code.writeout())) for code in self.codes ]
+            codes = [ errorMap.get(code, NotSupported(code)) for code in self.codes ]
         else:
             yield NotSupported("EXCEPTION WITHOUT ANY ERROR CODES")
             codes = []
@@ -573,7 +580,7 @@ class PostgresWriter(InformixWriter):
             pass
 
     def System(self):
-        yield 'PERFORM system(', self.expr, ')'
+        yield 'PERFORM system_call(', self.expr, ')'
 
     def DefineGlobal(self):
         yield 'DEFINE GLOBAL ', self.name, ' ', self.type, ' DEFAULT ', self.default, ' ', Comment(NotSupported("DEFINE GLOBAL"))
@@ -613,5 +620,8 @@ class PostgresWriter(InformixWriter):
         yield 'CREATE AGGREGATE ', self.name, ' (', NotSupported('arg_data_type'), ') (', br, Indent,
         yield join_list((',', br), [ _map(a, f) for a, f in self.arglist if _map(a, f) ])
         yield Dedent, br, ')'
+
+    def UnlockTable(self):
+        yield Noop(), ' ', BlockComment(NotSupported('UNLOCK TABLE ', self.table)), ''
 
 writer = PostgresWriter
