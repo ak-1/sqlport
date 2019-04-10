@@ -381,13 +381,10 @@ class PostgresWriter(InformixWriter):
                 yield NotSupported("RETURNS with multiple values")
         else:
             yield ' RETURNS VOID'
-        # if self.variant != None:
-        #     yield ' WITH ('
-        #     if not self.variant:
-        #         yield 'NOT '
-        #     yield 'VARIANT)\n'
-        # elif self.variant is False:
-        #     yield ' WITH (NOT VARIANT)\n'
+        if self.variant == True:
+            yield ' VOLATILE'
+        if self.variant == False:
+            yield ' IMMUTABLE'
         yield " AS $$\n"
         if self.declarations:
             yield "DECLARE\n", Indented(self.declarations)
