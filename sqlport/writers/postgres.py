@@ -182,7 +182,7 @@ errorMap = {
 class PostgresWriter(InformixWriter):
     def Select(self):
         yield from fix_outer(self)
-        br = Br(self, 70)
+        br = Br(self)
         if self.into:
             yield 'CREATE TEMP TABLE ', self.into, ' AS', br
         yield "SELECT"
