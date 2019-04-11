@@ -10,6 +10,14 @@ invalid_names = set("""
 ALL END DEFAULT
 """.split())
 
+config = {
+    "assign": "=",
+}
+
+class Config: pass
+conf = Config()
+conf.__dict__ = config
+
 def map_matches(txt):
     r = ""
     quote = False
@@ -432,9 +440,9 @@ class PostgresWriter(InformixWriter):
     def Let(self):
         if len(self.names) > 1:
             yield Comment(NotSupported('LET with multiple values:'))
-            yield self.names, ' := ', self.values
+            yield self.names, ' ', conf.assign, ' ', self.values
         else:
-            yield self.names[0], ' := ', self.values[0]
+            yield self.names[0], ' ', conf.assign , ' ', self.values[0]
 
     def Call(self):
         br = Br(self)
@@ -544,30 +552,11 @@ class PostgresWriter(InformixWriter):
             yield UpdateB(self.dst, upd_column_list, upd_expr_list, self.src, self.on).writeout()
 
     def ForEach(self):
-        # yield 'FOREACH '
-        # if self.cursor:
-        #     yield self.cursor, ' FOR '
-        # yield self.select, '\n'
-        # yield self.statements
-        # yield 'END FOREACH\n'
-
-        # TODO
-        # - "SELECT a, b INTO x, y" -> "SELECT a as x, b as y"
-        # - self.record = "__rec__", "__rec2__", ...
-        # - self.variables = ["x", "y"]
-        # - What about self.cursor ?
-        
         yield 'FOR ', self.record, ' IN ', self.select, ' LOOP\n', Indent
         for var in self.variables:
-            yield var, ' := ', self.record, '.', var, ';\n'
+            yield var, ' ', conf.assign, ' ', self.record, '.', var, ';\n'
         yield self.statements
         yield Dedent, 'END LOOP'
-        
-        # FOR _rec_ IN SELECT a as x, b as y FROM ... LOOP
-        # x := _rec_.x;
-        # y := _rec_.y;
-        # ...
-        # END LOOP;
 
     def Table(self):
         yield self.expr, ' AS ', self.name, ' (', Indented(self.columns), ')'

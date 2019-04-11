@@ -169,8 +169,8 @@ def test_proc_stmt_let():
     a int;
     b int;
     BEGIN
-    a := a + b;
-    a, b := b, a;
+    a = a + b;
+    a, b = b, a;
     END;
     $$ LANGUAGE plpgsql;
     """
@@ -218,10 +218,10 @@ def test_on_exception_in():
     let x = 1;
     """)
     p = pgproc("""
-    x := 1;
+    x = 1;
     EXCEPTION
     WHEN undefined_table OR NOT_SUPPORTED: -218 THEN
-    x := 0;
+    x = 0;
     """)
     assert tokens(port(i)) == tokens(p)
     i = ifxproc("""
@@ -230,7 +230,7 @@ def test_on_exception_in():
     let x = 1;
     """)
     p = pgproc("""
-    x := 1;
+    x = 1;
     EXCEPTION
     WHEN undefined_table THEN
     NOT_SUPPORTED: WITH RESUME
