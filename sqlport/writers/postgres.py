@@ -12,6 +12,7 @@ ALL END DEFAULT
 
 config = {
     "assign": "=",
+    "decimal": ("30","10"),
 }
 
 class Config: pass
@@ -309,8 +310,7 @@ class PostgresWriter(InformixWriter):
             self.size2 = None
         if self.name == "DECIMAL" and self.size2 is None:
             #self.size2 = str(min(int(int(self.size) / 3), 10))
-            self.size = "30"
-            self.size2 = "10"
+            self.size, self.size2 = conf.decimal
         if self.size:
             yield '(', self.size
             if self.size2:
