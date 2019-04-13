@@ -430,15 +430,29 @@ class SqlParser(Parser):
        'ALTER TABLE entity_name ADD CONSTRAINT "(" constraint ")"')
     def alter_table_stmt(self, p):
         return AddConstraint(p.entity_name, p.constraint)
-    @_('ALTER TABLE entity_name ADD create_table_column before_column')
+    @_('ALTER TABLE entity_name ADD new_column')
     def alter_table_stmt(self, p):
-        return AddColumn(p.entity_name, p.create_table_column)
+        return AddColumn(p.entity_name, (p.new_column,))
+    @_('ALTER TABLE entity_name ADD "(" new_column_list ")"')
+    def alter_table_stmt(self, p):
+        return AddColumn(p.entity_name, p.new_column_list)
     @_('ALTER TABLE entity_name DROP name')
     def alter_table_stmt(self, p):
         return DropColumn(p.entity_name, (p.name,))
     @_('ALTER TABLE entity_name DROP "(" name_list ")"')
     def alter_table_stmt(self, p):
         return DropColumn(p.entity_name, p.name_list)
+
+    @_('new_column')
+    def new_column_list(self, p):
+        return CommaList(p.new_column)
+    @_('new_column_list "," new_column')
+    def new_column_list(self, p):
+        return p.new_column_list.append(p.new_column)
+
+    @_('create_table_column before_column')
+    def new_column(self, p):
+        return p.create_table_column
 
     @_('RENAME TABLE entity_name TO name')
     def rename_table_stmt(self, p):

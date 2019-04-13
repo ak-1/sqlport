@@ -301,6 +301,20 @@ def test_rename_table():
     """
     assert tokens(port(i)) == tokens(p)
 
+def test_alter_table_add_column():
+    i = """
+    alter table a add x int;
+    """
+    assert tokens(port(i)) == tokens(i)
+    i = """
+    alter table a add (x int, y int);
+    """
+    p = """
+    alter table a add x int;
+    alter table a add y int;
+    """
+    assert tokens(port(i)) == tokens(p)
+
 def test_alter_table_drop_column():
     i = """
     alter table a drop x;

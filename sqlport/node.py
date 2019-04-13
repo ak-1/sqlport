@@ -337,9 +337,9 @@ class AddConstraint(Node):
         self.constraint = constraint
 
 class AddColumn(Node):
-    def __init__(self, table, column):
+    def __init__(self, table, columns):
         self.table = table
-        self.column = column
+        self.columns = columns
 
 class DropColumn(Node):
     def __init__(self, table, columns):

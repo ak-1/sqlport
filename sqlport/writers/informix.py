@@ -202,8 +202,11 @@ class InformixWriter:
         yield ' ADD CONSTRAINT ', self.constraint
 
     def AddColumn(self):
-        yield 'ALTER TABLE ', self.table
-        yield ' ADD ', self.column
+        yield 'ALTER TABLE ', self.table, ' ADD '
+        if len(self.columns) > 1:
+            yield '(', self.columns, ')'
+        else:
+            yield self.columns
 
     def DropColumn(self):
         yield 'ALTER TABLE ', self.table, ' DROP '
