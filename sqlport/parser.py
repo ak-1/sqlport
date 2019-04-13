@@ -115,6 +115,9 @@ class SqlParser(Parser):
     @_('alter_table_stmt')
     def statement(self, p):
         return p.alter_table_stmt
+    @_('rename_table_stmt')
+    def statement(self, p):
+        return p.rename_table_stmt
     @_('call_stmt')
     def statement(self, p):
         return p.call_stmt
@@ -430,6 +433,10 @@ class SqlParser(Parser):
     @_('ALTER TABLE entity_name ADD create_table_column before_column')
     def alter_table_stmt(self, p):
         return AddColumn(p.entity_name, p.create_table_column)
+
+    @_('RENAME TABLE entity_name TO name')
+    def rename_table_stmt(self, p):
+        return RenameTable(p.entity_name, p.name)
 
     @_('BEFORE name', 'empty')
     def before_column(self, p):

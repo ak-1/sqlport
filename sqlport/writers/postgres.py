@@ -613,4 +613,8 @@ class PostgresWriter(InformixWriter):
     def UnlockTable(self):
         yield Noop(), ' ', BlockComment(NotSupported('UNLOCK TABLE ', self.table)), ''
 
+    def RenameTable(self):
+        yield 'ALTER TABLE ', self.table
+        yield ' RENAME TO ', self.name
+
 writer = PostgresWriter

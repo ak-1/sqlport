@@ -291,6 +291,16 @@ def test_create_view():
     assert tokens(port(i)) == tokens(p)
 
 # def test_set_lock_mode():
+
+def test_rename_table():
+    i = """
+    rename table a to b
+    """
+    p = """
+    alter table a rename to b;
+    """
+    assert tokens(port(i)) == tokens(p)
+
 # def test_alter_table_stmt():
 # def test_merge_stmt():
 # def test_merge_case_list():

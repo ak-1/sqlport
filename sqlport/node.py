@@ -326,6 +326,11 @@ class View(Node):
         self.columns = columns
         self.select = select
 
+class RenameTable(Node):
+    def __init__(self, table, name):
+        self.table = table
+        self.name = name
+
 class AddConstraint(Node):
     def __init__(self, table, constraint):
         self.table = table

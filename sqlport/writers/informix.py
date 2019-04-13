@@ -193,6 +193,10 @@ class InformixWriter:
     def View(self):
         return 'CREATE VIEW ', self.name, ' (', Indented(self.columns), ') AS ', self.select
 
+    def RenameTable(self):
+        yield 'RENAME TABLE ', self.table
+        yield ' TO ', self.name
+
     def AddConstraint(self):
         yield 'ALTER TABLE ', self.table
         yield ' ADD CONSTRAINT ', self.constraint
