@@ -341,6 +341,11 @@ class AddColumn(Node):
         self.table = table
         self.column = column
 
+class DropColumn(Node):
+    def __init__(self, table, columns):
+        self.table = table
+        self.columns = columns
+
 class UniqueConstraint(Node):
     def __init__(self, name, columns):
         self.name = name

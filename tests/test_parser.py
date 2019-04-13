@@ -301,7 +301,20 @@ def test_rename_table():
     """
     assert tokens(port(i)) == tokens(p)
 
-# def test_alter_table_stmt():
+def test_alter_table_drop_column():
+    i = """
+    alter table a drop x;
+    """
+    assert tokens(port(i)) == tokens(i)
+    i = """
+    alter table a drop (x, y);
+    """
+    p = """
+    alter table a drop x;
+    alter table a drop y;
+    """
+    assert tokens(port(i)) == tokens(p)
+
 # def test_merge_stmt():
 # def test_merge_case_list():
 # def test_merge_case():

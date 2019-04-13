@@ -617,4 +617,7 @@ class PostgresWriter(InformixWriter):
         yield 'ALTER TABLE ', self.table
         yield ' RENAME TO ', self.name
 
+    def DropColumn(self):
+        yield join_list(';\n\n', [ ('ALTER TABLE ', self.table, ' DROP ', c) for c in self.columns ])
+
 writer = PostgresWriter

@@ -205,6 +205,13 @@ class InformixWriter:
         yield 'ALTER TABLE ', self.table
         yield ' ADD ', self.column
 
+    def DropColumn(self):
+        yield 'ALTER TABLE ', self.table, ' DROP '
+        if len(self.columns) > 1:
+            yield '(', self.columns, ')'
+        else:
+            yield self.columns
+
     def CheckConstraint(self):
         yield 'CHECK (', self.expr, ')'
         if self.name:

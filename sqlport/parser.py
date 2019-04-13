@@ -433,6 +433,12 @@ class SqlParser(Parser):
     @_('ALTER TABLE entity_name ADD create_table_column before_column')
     def alter_table_stmt(self, p):
         return AddColumn(p.entity_name, p.create_table_column)
+    @_('ALTER TABLE entity_name DROP name')
+    def alter_table_stmt(self, p):
+        return DropColumn(p.entity_name, (p.name,))
+    @_('ALTER TABLE entity_name DROP "(" name_list ")"')
+    def alter_table_stmt(self, p):
+        return DropColumn(p.entity_name, p.name_list)
 
     @_('RENAME TABLE entity_name TO name')
     def rename_table_stmt(self, p):
