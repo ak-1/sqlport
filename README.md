@@ -1,4 +1,4 @@
-## sqlport - aspires to port Informix SQL to PostgreSQL
+## sqlport - port Informix SQL to PostgreSQL
 
 ```
 $ echo 'select first 1 hello from world' | sqlport
